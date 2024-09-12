@@ -17,9 +17,9 @@ a better understanding of the problems you encountered during the development of
 **Note:** Commits behind this fork could be automatically synced, meaning that changes made in the template are pushed into your repo. Please do not discard commits ahead (these are the updates you make to this repository).
 
 ## Project Team
-- *Mentor's Name*  - *Company Affliation* - Mentor
-- *Technical Advisor Name* - *Company Affliation* - Technical Advisor
-- *Faculty Advisor's Name* - *Department* - Faculty Advisor
+- *Thang Dinh*  - *VCU* - Mentor
+- *Thang Dinh* - *VCU* - Technical Advisor
+- *Thang Dinh* - *VCU* - Faculty Advisor
 - *Joshua Pomeroy* - *Computer Science* - Student Team Member
 - *Santiago Agudelo* - *Computer Science* - Student Team Member
 - *Steven Acosta* - *Computer Science* - Student Team Member
