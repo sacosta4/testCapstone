@@ -11,7 +11,7 @@ Status Report Fall Week XX.md is a template for to copy-paste into new Status re
 
 | Document | Tasks | Accomplishments | Issues |
 |---|---|---|---|
-| Week 1 Status Report | Need to finish setting up GH repo | We have finished our team contract. Aiming to finish GH repo | Team members need role updated on GitHub to maintainer. Can't change the name of the repo from default GitHub name |
+| Week 1 Status Report | Need to finish setting up GH repo | - We have finished our team contract <br>  - Aiming to finish GH repo <br> | - Team members need role updated on GitHub to maintainer<br> - Can't change the name of the repo from default GitHub name <br> |
 | Week 2 Status Report | | | |
 | Week 3 Status Report | | | |
 | Week 4 Status Report | | | |
