@@ -8,6 +8,7 @@
 Thang Dinh
 
 **Faculty Advisor:**
+Thang Dinh
 
 ## 1) Accomplishments this week ##
    - Finished/turned in team contract
