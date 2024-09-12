@@ -1,7 +1,10 @@
 # *CS 25-333 Quantum Computing With Blockly*
 
 **Students' Names:**
- Santiago Agudelo, Joshua Pomeroy, Steven Acosta, Robert Duncan
+ - Santiago Agudelo 
+ - Joshua Pomeroy
+ - Steven Acosta
+ - Robert Duncan
 
 
 **Mentor:**
