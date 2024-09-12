@@ -12,7 +12,7 @@ Thang Dinh
 ## 1) Accomplishments this week ##
    - Finished/turned in team contract
    - Weekly Zoom meeting with faculty advisor
-   - 
+
 
 ## 2) Milestones to be completed next week ##
    - Finish setting up GitHub repo and have it turned in
