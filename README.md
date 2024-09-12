@@ -1,5 +1,5 @@
 # *CS-25-333 Quantum Computing with Blockly*
-## *Sponsoring Company or Organization*
+## *Virginia Commonwealth University*
 ## *Short Project Description*
 The directory structure in this GitHub is to allow the project to have all its resources self-contained.
 Open Source software should not just be a repository of code.  There are a number of directories to help you and others who will 
