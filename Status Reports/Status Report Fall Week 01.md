@@ -7,7 +7,6 @@
  - Steven Acosta
  - Robert Duncan
 
-
 **Mentor:**
 Thang Dinh
 
