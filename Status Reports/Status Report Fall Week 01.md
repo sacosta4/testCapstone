@@ -10,15 +10,16 @@ Thang Dinh
 **Faculty Advisor:**
 
 ## 1) Accomplishments this week ##
-   - investigate databases done by student A
-   - make flowcharts done by students A and B
+   - Finished/turned in team contract
+   - Weekly Zoom meeting with faculty advisor
+   - 
 
 ## 2) Milestones to be completed next week ##
-   - debug the code to be performed by student C
+   - Finish setting up GitHub repo and have it turned in
 
 ## 3) Issues, problems or concerns ##
-   - student C needs to learn java
-   - database repository costs big $$$
+   - No major isseus currently
+   
    
 
 
