@@ -21,6 +21,6 @@ a better understanding of the problems you encountered during the development of
 - *Technical Advisor Name* - *Company Affliation* - Technical Advisor
 - *Faculty Advisor's Name* - *Department* - Faculty Advisor
 - *Joshua Pomeroy* - *Computer Science* - Student Team Member
-- *Student's Name* - *major* - Student Team Member
-- *Student's Name* - *major* - Student Team Member
-- *Student's Name* - *major* - Student Team Member
+- *Santiago Agudelo* - *Computer Science* - Student Team Member
+- *Steven Acosta* - *Computer Science* - Student Team Member
+- *Robert Duncan* - *Computer Science* - Student Team Member
