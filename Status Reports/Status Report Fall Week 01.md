@@ -19,7 +19,8 @@ Thang Dinh
    - Finish setting up GitHub repo and have it turned in
 
 ## 3) Issues, problems or concerns ##
-   - No major isseus currently
+   - Team members need role updated on GitHub to maintainer
+   - Can't change the name of the repo from default GitHub name
    
    
 
