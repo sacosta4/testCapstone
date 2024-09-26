@@ -8,8 +8,10 @@
  - Robert Duncan
 
 **Mentor:**
+Thang Dinh
 
 **Faculty Advisor:**
+Thang Dinh
 
 ## 1) Accomplishments this week ##
    - investigate databases done by student A
