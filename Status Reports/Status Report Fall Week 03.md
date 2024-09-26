@@ -14,15 +14,15 @@ Thang Dinh
 Thang Dinh
 
 ## 1) Accomplishments this week ##
-   - investigate databases done by student A
-   - make flowcharts done by students A and B
+   - Everyone installed and has server working 
+   - 
 
 ## 2) Milestones to be completed next week ##
-   - debug the code to be performed by student C
+   - Read sections 3.2, beginning of 4, 4.1 from QUBO doucument
 
 ## 3) Issues, problems or concerns ##
-   - student C needs to learn java
-   - database repository costs big $$$
+   - 
+   - 
    
 
 
