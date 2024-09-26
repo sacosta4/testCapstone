@@ -2,6 +2,11 @@
 
 **Students' Names:**
 
+ - Santiago Agudelo 
+ - Joshua Pomeroy
+ - Steven Acosta
+ - Robert Duncan
+
 **Mentor:**
 
 **Faculty Advisor:**
