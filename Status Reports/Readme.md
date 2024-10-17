@@ -13,10 +13,10 @@ Status Report Fall Week XX.md is a template for to copy-paste into new Status re
 |---|---|---|---|
 | Week 1 Status Report | - Need to finish setting up GH repo | - We have finished our team contract <br>  - Aiming to finish GH repo <br> | - Team members need role updated on GitHub to maintainer<br> - Can't change the name of the repo from default GitHub name <br> |
 | Week 2 Status Report | - Learn more about QUBO <br>  - Set up VS code to work with Blockly | - Finished setting up GH repo | - Team members had trouble setting up VS code to connect to the virtual development environment |
-| Week 3 Status Report | - Read sections 3.2, beginning of 4, 4.1 from QUBO doucument | - Everyone installed and has server working | |
+| Week 3 Status Report | - Read sections 3.2, beginning of 4, 4.1 from QUBO doucument | - Everyone installed and has server working | - No issues this week |
 | Week 4 Status Report | - Work on project proposal <br> - Learn more about QUBO | - Finished half of the project proposal| - No issues this week|
-| Week 5 Status Report | - Finish project proposal <br> - Implement save/load feature for Blockly <br> - Work on connect 4 game| - Finished project proposal| -No issues this week|
-| Week 6 Status Report | - Push save/load commit to GitHub <br> | - Have functional quantum connect 4 code <br> | |
+| Week 5 Status Report | - Finish project proposal <br> - Implement save/load feature for Blockly <br> - Work on connect 4 game| - Finished project proposal| - No issues this week|
+| Week 6 Status Report | - Push save/load commit to GitHub <br> | - Have functional quantum connect 4 code <br> | - No issues this week |
 | Week 7 Status Report | | | |
 | Week 8 Status Report | | | |
 | Week 9 Status Report | | | |
