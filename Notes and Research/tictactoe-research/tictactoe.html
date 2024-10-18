@@ -1,0 +1,92 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Tic - Tac - Toe</title>
+    <script>
+
+    // Global variables.
+    var turn;
+    var content = [];
+    var winningCombinations = [
+        [0,1,2], [3,4,5], [6,7,8],
+        [0,3,6], [1,4,7], [2,5,8],
+        [0,4,8], [2,4,6]];
+
+    // Initialize the game.
+    function init() {
+      turn = 0;
+      for(var i = 0; i < 9; i++) {
+        content[i] = '';
+        var c = document.getElementById('canvas' + i);
+        c.width = c.width;
+      }
+    }
+
+    // Play on the specified square.
+    function canvasClicked(canvasNumber) {
+      if (content[canvasNumber]) {
+        alert('THAT SPACE IS ALREADY OCCUPIED!');
+        return;
+      }
+
+      var c = document.getElementById('canvas' + canvasNumber);
+      var cxt = c.getContext('2d');
+      cxt.beginPath();
+      if (turn % 2 == 0) {
+        cxt.moveTo(10, 10);
+        cxt.lineTo(40, 40);
+        cxt.moveTo(40, 10);
+        cxt.lineTo(10, 40);
+        content[canvasNumber] = 'X';
+      } else {
+        cxt.arc(25, 25, 20, 0, Math.PI * 2, true);
+        content[canvasNumber] = 'O';
+      }
+      cxt.lineWidth = 2;
+      cxt.stroke();
+      cxt.closePath();
+
+      turn++;
+      if (turn == 9) {
+        alert('THE GAME IS OVER!');
+        init();
+      } else {
+        checkForWinners(content[canvasNumber]);
+      }
+    }
+
+    // Has a player won?
+    function checkForWinners(symbol) {
+      for (var a = 0; a < winningCombinations.length; a++) {
+        if (content[winningCombinations[a][0]] == symbol &&
+            content[winningCombinations[a][1]] == symbol &&
+            content[winningCombinations[a][2]] == symbol) {
+          alert(symbol + ' WON!');
+          init();
+        }
+      }
+    }
+
+    window.onload = init;
+    </script>
+  </head>
+  <body>
+    <h2>Tic - Tac - Toe</h2>
+    <canvas id="canvas0" width="50" height="50" style="border:1px solid black" onclick="canvasClicked(0)"></canvas>
+    <canvas id="canvas1" width="50" height="50" style="border:1px solid black" onclick="canvasClicked(1)"></canvas>
+    <canvas id="canvas2" width="50" height="50" style="border:1px solid black" onclick="canvasClicked(2)"></canvas><br/>
+    <canvas id="canvas3" width="50" height="50" style="border:1px solid black" onclick="canvasClicked(3)"></canvas>
+    <canvas id="canvas4" width="50" height="50" style="border:1px solid black" onclick="canvasClicked(4)"></canvas>
+    <canvas id="canvas5" width="50" height="50" style="border:1px solid black" onclick="canvasClicked(5)"></canvas><br/>
+    <canvas id="canvas6" width="50" height="50" style="border:1px solid black" onclick="canvasClicked(6)"></canvas>
+    <canvas id="canvas7" width="50" height="50" style="border:1px solid black" onclick="canvasClicked(7)"></canvas>
+    <canvas id="canvas8" width="50" height="50" style="border:1px solid black" onclick="canvasClicked(8)"></canvas>
+
+    <p>
+      Based on <a href="http://www.dreamincode.net/forums/topic/247361-simple-tic-tac-toe-using-html5-css3-and-javascript/">Simple Tic - Tac - Toe</a>
+      by Monomania.
+    </p>
+  </body>
+</html>
+
+

@@ -1,26 +1,21 @@
-# *CS-25-333 Quantum Computing with Blockly*
-## *Virginia Commonwealth University*
-## *Creating games to help teach about the world of quantum computing*
-The directory structure in this GitHub is to allow the project to have all its resources self-contained.
-Open Source software should not just be a repository of code.  There are a number of directories to help you and others who will 
-follow in your footsteps.  It'll also allow the Linux Foundation OMP Mentorship program to keep track of your project and get
-a better understanding of the problems you encountered during the development of this project. 
+# Quantum Computing for K-12 with Blockly
 
+## Project Description
+### Synopsis
+- Currently there isn't a simple medium to introduce students who are new to Computer Science and programming conepts to the world of Quantum Computing. Our project aims to simplify quantum computing for students so it's less intimidating and fun to learn.
+### Description
+- We are proposing a web application that will be a hub for partially developed puzzle to be completed by the user with a block programming interface. The interface will contain the necessary blocks to complete solutions to the given problems -- including specialized blocks that will communicate with a quantum computer in the backed to solve a given problem. The problems will be also be developed by administrators/teachers with a provided block programming interface.
+- In using block programming in the development of these games and in the utilization of a quantum computer, our solution will provide a visual and less daunting way of programming with quantum computers.
+## Folder Structure
 | Folder | Description |
 |---|---|
-| Documentation |  all documentation the project team has created to describe the architecture, design, installation, and configuration of the project |
-| Notes and Research | Relevant helpful information to understand the tools and techniques used in the project |
-| Project Deliverables | Folder that contains final pdf versions of all Fall and Spring Major Deliverables |
+| Documentation |  all documentation the project team has created to describe the architecture, design, installation and configuratin of the peoject |
+| Notes and Research | Relavent information useful to understand the tools and techniques used in the project |
 | Status Reports | Project management documentation - weekly reports, milestones, etc. |
 | scr | Source code - create as many subdirectories as needed |
 
-**Note:** Commits behind this fork could be automatically synced, meaning that changes made in the template are pushed into your repo. Please do not discard commits ahead (these are the updates you make to this repository).
-
 ## Project Team
-- *Thang Dinh*  - *VCU* - Mentor
-- *Thang Dinh* - *VCU* - Technical Advisor
-- *Thang Dinh* - *VCU* - Faculty Advisor
-- *Joshua Pomeroy* - *Computer Science* - Student Team Member
-- *Santiago Agudelo* - *Computer Science* - Student Team Member
-- *Steven Acosta* - *Computer Science* - Student Team Member
-- *Robert Duncan* - *Computer Science* - Student Team Member
+- Thang Dinh - Mentor
+- Kaela Strawbridge - Computer Science - Logistics
+- Rohan Nair - Computer Science - Project Manager
+- Hannah Zhao - Computer Science - Testing Engineer
