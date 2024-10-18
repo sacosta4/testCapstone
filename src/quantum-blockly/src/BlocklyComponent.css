@@ -1,0 +1,17 @@
+h2 {
+    text-align: center;
+}
+
+.blockly-area {
+    width: 100%;
+    height: 100%;
+}
+
+.blockly-div {
+    width: 100%;
+    height: 480px;
+}
+
+#generate-btn {
+    width: 100%;
+}
