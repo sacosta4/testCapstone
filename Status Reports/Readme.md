@@ -1,22 +1,21 @@
 # Status Reports Folder
-Weekly status reports go into this folder
+Weekly/bi-weekly status reports go into this folder
 
-This Readme.md serves as the front page of this folder - update the table with very succinct weekly reports.
+Project Plan Template: https://github.com/VCU-CS-Capstone/0000---Capstone-Template/blob/master/Status%20Reports/Project%20Plan.md
 
-Project Plan.md is a document that should be updated accordingly as the project develops through the year.
+Status Report Template: https://github.com/VCU-CS-Capstone/0000---Capstone-Template/blob/master/Status%20Reports/Status%20Reports.dotx
 
-Status Report Fall Week XX.md is a template for to copy-paste into new Status reports you generate every week.
-
-## Fall Semester
+## 1st Semester
 
 | Document | Tasks | Accomplishments | Issues |
 |---|---|---|---|
-| Week 1 Status Report | - Need to finish setting up GH repo | - We have finished our team contract <br>  - Aiming to finish GH repo <br> | - Team members need role updated on GitHub to maintainer<br> - Can't change the name of the repo from default GitHub name <br> |
-| Week 2 Status Report | - Learn more about QUBO <br>  - Set up VS code to work with Blockly | - Finished setting up GH repo | - Team members had trouble setting up VS code to connect to the virtual development environment |
-| Week 3 Status Report | - Read sections 3.2, beginning of 4, 4.1 from QUBO doucument | - Everyone installed and has server working | - No issues this week |
-| Week 4 Status Report | - Work on project proposal <br> - Learn more about QUBO | - Finished half of the project proposal| - No issues this week|
-| Week 5 Status Report | - Finish project proposal <br> - Implement save/load feature for Blockly <br> - Work on connect 4 game| - Finished project proposal| - No issues this week|
-| Week 6 Status Report | - Push save/load commit to GitHub <br> | - Have functional quantum connect 4 code <br> | - No issues this week |
+| Project Plan | Overall week by week plan of milestones | | |
+| Week 1 Status Report | Understanding the project and what we are suppose to do. | Figuring out what we need to work on | No Issue |
+| Week 2 Status Report | Further understanding of the project | Got a better grasp of what the end result should be | How we are going to integrate games|
+| Week 3 Status Report | Discussion on integrating games and puzzles | Got a better sense of how to have games interact with Blockly | No Issue|
+| Week 4 Status Report | Each of us played around with games and codelabs on blockly and seeing how they were developed, also had a discussion on teachers developing puzzles/games for students and how that could be done | Understood some of the workflow between teachers, games and students| How do we have teacher's develop games and integrate it on the site?|
+| Week 5 Status Report | | | |
+| Week 6 Status Report | | | |
 | Week 7 Status Report | | | |
 | Week 8 Status Report | | | |
 | Week 9 Status Report | | | |
@@ -28,7 +27,7 @@ Status Report Fall Week XX.md is a template for to copy-paste into new Status re
 | Week 15 Status Report | | | |
 | Week 16 Status Report | | | |
 
-## Spring Semester
+## 2nd Semester
 
 | Document | Tasks | Accomplishments| Issues |
 |---|---|---|---|
