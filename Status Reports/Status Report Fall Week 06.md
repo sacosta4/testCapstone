@@ -22,7 +22,7 @@ Thang Dinh
    - Have more CPU code written in JS; implement more difficulties
 
 ## 3) Issues, problems or concerns ##
-   - General bugs with connect 4 program; nothing huge
+   - 
    - 
    
 
