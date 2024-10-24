@@ -17,7 +17,7 @@ Status Report Fall Week XX.md is a template for to copy-paste into new Status re
 | Week 4 Status Report | - Work on project proposal <br> - Learn more about QUBO | - Finished half of the project proposal| - No issues this week|
 | Week 5 Status Report | - Finish project proposal <br> - Implement save/load feature for Blockly <br> - Work on connect 4 game| - Finished project proposal| -No issues this week|
 | Week 6 Status Report | - Push save/load commit to GitHub <br> | - Have functional quantum connect 4 code <br> | |
-| Week 7 Status Report | | | |
+| Week 7 Status Report | - Integrate difficulty tiers to the quantum server <br> - Have the user make a quantum CPU go against a regular CPU | - fixed connect 4 bugs <br> - implemented a difficulty system for the computer opponent <br> - started working on fall poster | - No issues this week|
 | Week 8 Status Report | | | |
 | Week 9 Status Report | | | |
 | Week 10 Status Report | | | |
