@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './TicTacToe.css'; // Import your CSS styles or adjust them here
+import './TicTacToe.css'; // Ensure this file is correctly linked
 
 const TicTacToe = ({ quboCode, log }) => {
   const [currentPlayer, setCurrentPlayer] = useState('X');
   const [cells, setCells] = useState(Array(9).fill(''));
   const [difficulty, setDifficulty] = useState('Easy');
 
-  // Load saved game state on mount
+  // Load saved game on component mount
   useEffect(() => {
     const savedState = loadGame();
     if (savedState) {
@@ -17,7 +17,7 @@ const TicTacToe = ({ quboCode, log }) => {
     }
   }, []);
 
-  // Fetch move from quantum backend if it's 'O's turn
+  // Fetch move from the quantum server for 'O'
   useEffect(() => {
     if (currentPlayer === 'O') fetchQuantumMove();
   }, [currentPlayer, cells]);
@@ -45,8 +45,8 @@ const TicTacToe = ({ quboCode, log }) => {
 
   const fetchQuantumMove = async () => {
     try {
-      eval(quboCode); // Dynamically generate QUBO logic
-      const qubo = createQuboForSingleMove(cells, difficulty);
+      eval(quboCode); // Generate QUBO dynamically
+      const qubo = createQuboForSingleMove(cells, difficulty); // Pass difficulty level
 
       log(`> QUBO generated for ${difficulty} difficulty\n\n`);
 
@@ -66,23 +66,23 @@ const TicTacToe = ({ quboCode, log }) => {
     }
   };
 
-  const checkWinner = (currentCells) => {
+  const checkWinner = (cells) => {
     const winningCombos = [
       [0, 1, 2], [3, 4, 5], [6, 7, 8],
       [0, 3, 6], [1, 4, 7], [2, 5, 8],
       [0, 4, 8], [2, 4, 6]
     ];
     return winningCombos.some(combo =>
-      combo.every(index => currentCells[index] === currentPlayer)
+      combo.every(index => cells[index] === currentPlayer)
     );
   };
 
-  const checkDraw = (currentCells) => currentCells.every(cell => cell);
+  const checkDraw = (cells) => cells.every(cell => cell);
 
   const resetBoard = () => {
     setCells(Array(9).fill(''));
     setCurrentPlayer('X');
-    log('> Board reset\n\n');
+    log('> Board has been reset\n\n');
   };
 
   const saveGame = (state) => {
@@ -117,7 +117,7 @@ const TicTacToe = ({ quboCode, log }) => {
     <div className="container">
       <h1>Tic Tac Toe</h1>
 
-      {/* Difficulty Dropdown */}
+      {/* Difficulty Selector */}
       <div className="controls">
         <label htmlFor="difficulty">Select Difficulty: </label>
         <select
