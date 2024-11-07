@@ -4,18 +4,18 @@ import './TicTacToe.css';
 
 const TicTacToe = ({ quboCode, log }) => {
   const [gameSetup, setGameSetup] = useState(false);
-  const [player1Type, setPlayer1Type] = useState('Human');
-  const [player2Type, setPlayer2Type] = useState('Quantum CPU');
+  const [player1Type, setPlayer1Type] = useState('Quantum CPU'); // Swapped
+  const [player2Type, setPlayer2Type] = useState('Human'); // Swapped
   const [currentPlayer, setCurrentPlayer] = useState('X');
   const [cells, setCells] = useState(Array(9).fill(''));
 
   useEffect(() => {
     // Automated turn logic with delay for CPU vs Quantum CPU
     if (gameSetup) {
-      if (currentPlayer === 'X' && player1Type === 'CPU') {
-        setTimeout(handleCPUMove, 500); // 500ms delay for CPU move
-      } else if (currentPlayer === 'O' && player2Type === 'Quantum CPU') {
+      if (currentPlayer === 'X' && player1Type === 'Quantum CPU') {
         setTimeout(fetchQuantumMove, 500); // 500ms delay for Quantum CPU move
+      } else if (currentPlayer === 'X' && player1Type === 'CPU') {
+        setTimeout(handleCPUMove, 500); // 500ms delay for CPU move
       } else if (currentPlayer === 'O' && player2Type === 'CPU') {
         setTimeout(handleCPUMove, 500); // 500ms delay if Player 2 is a CPU
       }
@@ -83,8 +83,8 @@ const TicTacToe = ({ quboCode, log }) => {
       const response = await axios.post('http://localhost:8000/quantum', qubo);
 
       if (response.data && response.data.solution !== undefined && response.data.energy !== undefined) {
-        makeMove(response.data.solution, 'O');
-        log(`> Quantum Server calculated O placement at cell ${response.data.solution} based on QUBO generated from Blockly Workspace\n\n`);
+        makeMove(response.data.solution, 'X'); // Player 1 is Quantum CPU (X)
+        log(`> Quantum Server calculated X placement at cell ${response.data.solution} based on QUBO generated from Blockly Workspace\n\n`);
       } else {
         log('> Quantum Server Error: Invalid response format or missing data.\n\n');
       }
@@ -184,6 +184,7 @@ const TicTacToe = ({ quboCode, log }) => {
             <select value={player1Type} onChange={(e) => setPlayer1Type(e.target.value)}>
               <option value="Human">Human</option>
               <option value="CPU">CPU</option>
+              <option value="Quantum CPU">Quantum CPU</option> {/* Swapped Options */}
             </select>
           </label>
           <label>
@@ -191,7 +192,6 @@ const TicTacToe = ({ quboCode, log }) => {
             <select value={player2Type} onChange={(e) => setPlayer2Type(e.target.value)}>
               <option value="Human">Human</option>
               <option value="CPU">CPU</option>
-              <option value="Quantum CPU">Quantum CPU</option>
             </select>
           </label>
           <button onClick={startGame}>Start Game</button>
