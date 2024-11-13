@@ -880,7 +880,20 @@ function BlocklyComponent({ mainCodeHandlingFunction, log}) {
         ]
       };
 
-      const currWorkspace = Blockly.inject(workspaceRef.current, { toolbox: toolbox }) //inject workspace into div referenced by workspaceRef
+      //Zoom in/out function
+      const currWorkspace = Blockly.inject(workspaceRef.current, {
+        toolbox: toolbox,
+        zoom: {
+          controls: true, // Enable zoom controls (buttons)
+          wheel: true,    // Enable zooming using the mouse wheel
+          startScale: 1.0, // Initial scale of the workspace
+          maxScale: 3,    // Maximum zoom level
+          minScale: 0.3,  // Minimum zoom level
+          scaleSpeed: 1.2 // Speed of zooming
+        }
+      });
+
+      //COMMENTED OUT ALREADY DECLARED >>> const currWorkspace = Blockly.inject(workspaceRef.current, { toolbox: toolbox }) //inject workspace into div referenced by workspaceRef
 
       if (!workspace) {
         initializeBlocks(currWorkspace);
