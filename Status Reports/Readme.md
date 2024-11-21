@@ -19,7 +19,7 @@ Status Report Fall Week XX.md is a template for to copy-paste into new Status re
 | Week 6 Status Report | - Push save/load commit to GitHub <br> | - Have functional quantum connect 4 code <br> | |
 | Week 7 Status Report | - Integrate difficulty tiers to the quantum server <br> - Have the user make a quantum CPU go against a regular CPU | - fixed connect 4 bugs <br> - implemented a difficulty system for the computer opponent <br> - started working on fall poster | - No issues this week|
 | Week 8 Status Report | - Implementing project details into poster <br> - Working on QPU as opponent with Blockly <br> - Select player screen function <br> - Swith between games function| - Fixed difficulty bugs for TicTacToe| - No issues this week|
-| Week 9 Status Report | | | |
+| Week 9 Status Report | - Implementing new UI changes to TicTacToe <br> - Adding best 2 out of 3 win feauture <br> | - Fixed QCPU functionality| - No issues this week |
 | Week 10 Status Report | | | |
 | Week 11 Status Report | | | |
 | Week 12 Status Report | | | |
