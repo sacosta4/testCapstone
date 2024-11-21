@@ -14,15 +14,14 @@ Thang Dinh
 Thang Dinh
 
 ## 1) Accomplishments this week ##
-   - investigate databases done by student A
-   - make flowcharts done by students A and B
-
+   - Implementing new UI changes to TicTacToe
+   - Adding best 2 out of 3 win feauture
+     
 ## 2) Milestones to be completed next week ##
-   - debug the code to be performed by student C
+   - Fixed QCPU functionality
 
 ## 3) Issues, problems or concerns ##
-   - student C needs to learn java
-   - database repository costs big $$$
+   - No issues this week
    
 
 
