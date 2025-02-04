@@ -188,3 +188,23 @@ javascriptGenerator['linear_term_block'] = function (block) {
     return `const linearTerms = { ${terms.join(', ')} };\n`;
   };
   
+  //New functions for qubo_blocks blockly side libraries
+
+// Linear Term Block Generator
+javascriptGenerator['linear_term_block'] = function (block) {
+    const key = block.getFieldValue('KEY');
+    const value = javascriptGenerator.valueToCode(block, 'VALUE', javascript.ORDER_ATOMIC) || 0;
+    return `{ key: "${key}", value: ${value} }`;
+  };
+  
+  // QUBO Main Block Generator
+  javascriptGenerator['qubo_main_block'] = function (block) {
+    const terms = [];
+    for (let i = 1; i <= 9; i++) {
+      const key = `x${i}`;
+      const weight = javascriptGenerator.valueToCode(block, `WEIGHT${i}`, javascript.ORDER_ATOMIC) || 0;
+
+      terms.push(`${key}: ${weight}`);
+    }
+    return `const linearTerms = { ${terms.join(', ')} };\n`;
+  };
