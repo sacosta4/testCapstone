@@ -3,6 +3,7 @@ import {useState, useEffect} from 'react';
 import axios from 'axios';
 import BlocklyComponent from './BlocklyComponent';
 import DisplayComponent from './DisplayComponent';
+import Connect4 from './Connect4';
 import TicTacToe from './TicTacToe';
 
 /*
@@ -19,27 +20,67 @@ function MainComponent() {
   const logHandler = (next) => {
     setLog((prev) => next + prev);
   }
+
+  const [game, setGame] = useState(0);
+  
+  const changeGame = async () => {
+      if(game === 0) {
+        setGame(1);
+      }
+      else {
+        setGame(0);
+      }
+  };
   
   // returns UI of main component (Blockly Component, Code Display, and Standard Output Display)
-  return (
-    <>
-    <div className="main">
-      <div className="vertical-div">
-        <BlocklyComponent mainCodeHandlingFunction={codeHandler} log={logHandler}/>
-        <DisplayComponent heading="Generated Code" text={code} bColor='black'/>
-      </div>
-      <div className="vertical-div" >
-        <div style={{height:'50%'}}>
-          <TicTacToe quboCode={code} log={logHandler}/> 
+  if(game === 0) {
+    return (
+      <>
+      <div className="controls">
+          <button onClick={changeGame}>Change Game</button>
         </div>
-        <div style={{width: '90%', height:'50%'}}>
-          <DisplayComponent heading="Log" text={log} bColor='black' />
+      <div className="main">
+        <div className="vertical-div">
+          <BlocklyComponent mainCodeHandlingFunction={codeHandler} log={logHandler}/>
+          <DisplayComponent heading="Generated Code" text={code} bColor='black'/>
         </div>
-        
+        <div className="vertical-div" >
+          <div style={{height:'50%'}}>
+            <Connect4 quboCode={code} log={logHandler}/>
+          </div>
+          <div style={{width: '90%', height:'50%'}}>
+            <DisplayComponent heading="Log" text={log} bColor='black' />
+          </div>
+          
+        </div>
       </div>
-    </div>
-    </>
-  )
+      </>
+    )
+  }
+  else {
+    return (
+      <>
+      <div className="controls">
+          <button onClick={changeGame}>Change Game</button>
+        </div>
+      <div className="main">
+        <div className="vertical-div">
+          <BlocklyComponent mainCodeHandlingFunction={codeHandler} log={logHandler}/>
+          <DisplayComponent heading="Generated Code" text={code} bColor='black'/>
+        </div>
+        <div className="vertical-div" >
+          <div style={{height:'50%'}}>
+            <TicTacToe quboCode={code} log={logHandler}/>
+          </div>
+          <div style={{width: '90%', height:'50%'}}>
+            <DisplayComponent heading="Log" text={log} bColor='black' />
+          </div>
+          
+        </div>
+      </div>
+      </>
+    )
+  }
 
 }
 
@@ -47,9 +88,10 @@ function MainComponent() {
 Root Component that comprises the entire app
 */
 function App() {
+
   return (
     <>
-    <h1>Quantum Blockly</h1> 
+    <h1>Quantum Blockly</h1>
     <MainComponent /> 
     </>
   );
