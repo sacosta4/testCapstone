@@ -1,7 +1,6 @@
 import './BlocklyComponent.css';
 import { useRef, useEffect, useState } from 'react';
 import Blockly from 'blockly';
-import { pythonGenerator } from 'blockly/python';
 import { javascriptGenerator } from 'blockly/javascript';
 import './blocks/dictionary';
 import './blocks/update_dict';
@@ -22,6 +21,45 @@ import './blocks/function';
 import './blocks/board';
 import './javascriptGenerators';
 
+const predefinedStrategies = {
+  "Random Move": {
+    // JSON block data for Random Move strategy
+    "blocks": [
+      { "type": "get_empty_cells" },
+      { "type": "lists_get_random_item", "inputs": { "VALUE": { "block": "get_empty_cells" } } },
+      { "type": "place_marker", "inputs": { "CELL": { "block": "lists_get_random_item" } } }
+    ]
+  },
+  "First Available Cell": {
+    // JSON block data for First Available Cell strategy
+    "blocks": [
+      { "type": "controls_forEach", "inputs": {
+        "LIST": { "block": "get_all_cells" },
+        "DO": {
+          "block": "controls_if",
+          "inputs": {
+            "IF0": { "block": "is_empty", "inputs": { "CELL": { "block": "variables_get", "field": "cell" } } },
+            "DO0": { "block": "place_marker", "inputs": { "CELL": { "block": "variables_get", "field": "cell" } } }
+          }
+        }
+      }}
+    ]
+  },
+  "Blocking Strategy": {
+    // JSON block data for Blocking Strategy
+    "blocks": [
+      { "type": "controls_if", "inputs": {
+        "IF0": { "block": "check_winning_move", "inputs": { "PLAYER": { "field": "opponent" } } },
+        "DO0": { "block": "place_marker", "inputs": { "CELL": { "block": "check_winning_move" } } },
+        "ELSE": {
+          "block": "lists_get_random_item",
+          "inputs": { "VALUE": { "block": "get_empty_cells" } }
+        }
+      }}
+    ]
+  }
+  // Add other strategies like Winning Strategy, Center Priority, Corner Priority
+};
 
 /*
   GenerateCodeButton represents the component that hosts the button that'll generate code when clicked
@@ -56,14 +94,7 @@ function BlocklyComponent({ mainCodeHandlingFunction, log}) {
   const workspaceRef = useRef(null); // DOM reference to the workspace div needed for injection
   const [workspace, setWorkspace] = useState(null); // the component will manage the state of the workspace, needed so that the workspace can be passed into the Generate Code Button Component
   const [code, setCode] = useState(''); // The component has its own code state to be retrieved from the blockly code handling function
-  const [workspaceName, setWorkspaceName] = useState('');
-  const [workspaces, setWorkspaces] = useState([]);
-
-// Fetch workspaces when the component loads
-useEffect(() => {
-  fetchWorkspaces();
-}, []);
-
+  
   //useEffect is a hook with a function that is called after the component is generated, injects and sets the workspace 
   useEffect(() => {
     if (workspaceRef.current) {
@@ -930,151 +961,101 @@ useEffect(() => {
     Blockly.serialization.workspaces.load(realState, workspace);    
 
   }
-
-  const fetchWorkspaces = async () => {
-    try {
-      const response = await fetch('http://127.0.0.1:8000/api/workspaces');
-      if (!response.ok) throw new Error(`Failed to fetch workspaces: ${response.statusText}`);
-      const data = await response.json();
-      setWorkspaces(data.workspaces || []);
-    } catch (error) {
-      console.error('Error fetching workspaces:', error.message);
-      alert('Error fetching workspaces. See console for details.');
-    }
-  };
-
-
-
   const saveWorkspaceToServer = async (workspaceName, workspaceState) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/workspaces', {
+      const response = await fetch('/api/workspaces', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          name: workspaceName,
-          state: workspaceState,
-        }),
+        body: JSON.stringify({ name: workspaceName, state: workspaceState }),
       });
   
       if (!response.ok) {
-        throw new Error(`Failed to save workspace: ${response.statusText}`);
+        throw new Error('Failed to save workspace to server');
       }
   
-      const result = await response.json();
-      console.log(result.message);
-      alert(result.message);
+      log(`> Workspace "${workspaceName}" saved to server successfully.\n\n`);
     } catch (error) {
-      console.error('Error saving workspace:', error.message);
-      alert(`Error saving workspace: ${error.message}`);
+      log(`> Error saving workspace to server: ${error.message}\n\n`);
     }
   };
   
   const loadWorkspaceFromServer = async (workspaceName) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/workspaces/${encodeURIComponent(workspaceName)}`);
+      const response = await fetch(`/api/workspaces/${encodeURIComponent(workspaceName)}`);
       if (!response.ok) {
-        throw new Error(`Failed to load workspace: ${response.statusText}`);
+        throw new Error('Workspace not found on server');
       }
   
       const { state } = await response.json();
-      if (state) {
-        Blockly.serialization.workspaces.load(state, workspace); // Load the retrieved state into the workspace
-        alert(`Workspace '${workspaceName}' loaded successfully.`);
-      }
+      Blockly.serialization.workspaces.load(state, workspace);
+      log(`> Workspace "${workspaceName}" loaded from server successfully.\n\n`);
     } catch (error) {
-      console.error('Error loading workspace:', error.message);
-      alert(`Error loading workspace: ${error.message}`);
+      log(`> Error loading workspace from server: ${error.message}\n\n`);
     }
   };
   
   const saveWorkspace = async () => {
-    if (!workspace) {
-      alert('Workspace is not initialized.');
-      return;
-    }
-
-    const name = prompt('Enter a name for the workspace:');
-    if (!name) return;
-
-    const state = Blockly.serialization.workspaces.save(workspace);
-
-    try {
-      const response = await fetch('http://127.0.0.1:8000/api/workspaces', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, state }),
-      });
-
-      if (!response.ok) throw new Error(`Failed to save workspace: ${response.statusText}`);
-      alert(`Workspace "${name}" saved successfully.`);
-      fetchWorkspaces();
-    } catch (error) {
-      console.error('Error saving workspace:', error.message);
-      alert('Error saving workspace. See console for details.');
+    if (workspace) {
+      const workspaceState = Blockly.serialization.workspaces.save(workspace);
+      const workspaceName = prompt('Enter a name for this workspace:');
+  
+      if (!workspaceName) {
+        log('> Save canceled: No name entered.\n\n');
+        return;
+      }
+  
+      // Save to local storage
+      const savedWorkspaces = JSON.parse(localStorage.getItem('savedBlocklyWorkspaces')) || {};
+      savedWorkspaces[workspaceName] = workspaceState;
+      localStorage.setItem('savedBlocklyWorkspaces', JSON.stringify(savedWorkspaces));
+      log(`> Workspace "${workspaceName}" saved locally successfully.\n\n`);
+  
+      // Save to server
+      await saveWorkspaceToServer(workspaceName, workspaceState);
+    } else {
+      log('> No workspace to save.\n\n');
     }
   };
-
+  
   const loadWorkspace = async () => {
-    const name = prompt('Enter the name of the workspace to load:');
-    if (!name) return;
-
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/api/workspaces/${encodeURIComponent(name)}`);
-      if (!response.ok) throw new Error(`Failed to load workspace: ${response.statusText}`);
-
-      const { state } = await response.json();
-      Blockly.serialization.workspaces.load(state, workspace);
-      alert(`Workspace "${name}" loaded successfully.`);
-    } catch (error) {
-      console.error('Error loading workspace:', error.message);
-      alert('Error loading workspace. See console for details.');
-    }
-  };
-
-
-  const listWorkspaces = async () => {
-    try {
-      const response = await fetch('http://127.0.0.1:8000/api/workspaces', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
+    const savedWorkspaces = JSON.parse(localStorage.getItem('savedBlocklyWorkspaces')) || {};
   
-      if (!response.ok) {
-        throw new Error(`Failed to fetch workspaces: ${response.statusText}`);
+    const choice = prompt(
+      `Choose a source:\n1. Local Storage\n2. Server\nEnter 1 or 2:`
+    );
+  
+    if (choice === '1') {
+      if (Object.keys(savedWorkspaces).length === 0) {
+        log('> No saved workspaces found locally.\n\n');
+        return;
       }
   
-      const data = await response.json();
-      setWorkspaces(data.workspaces || []); // Update state with fetched workspaces
-      console.log('Workspaces:', data.workspaces);
-    } catch (error) {
-      console.error('Error listing workspaces:', error);
-      alert('Error fetching workspaces. Check console for details.');
+      const workspaceName = prompt(
+        `Choose a workspace to load from local storage:\n${Object.keys(savedWorkspaces).join('\n')}`
+      );
+  
+      if (!workspaceName || !savedWorkspaces[workspaceName]) {
+        log('> Load canceled or workspace not found locally.\n\n');
+        return;
+      }
+  
+      Blockly.serialization.workspaces.load(savedWorkspaces[workspaceName], workspace);
+      log(`> Workspace "${workspaceName}" loaded from local storage successfully.\n\n`);
+    } else if (choice === '2') {
+      const workspaceName = prompt('Enter the name of the workspace to load from the server:');
+      if (!workspaceName) {
+        log('> Load canceled: No name entered.\n\n');
+        return;
+      }
+  
+      await loadWorkspaceFromServer(workspaceName);
+    } else {
+      log('> Invalid choice.\n\n');
     }
   };
   
-  const deleteWorkspace = async (workspaceName) => {
-    if (!window.confirm(`Are you sure you want to delete the workspace "${workspaceName}"?`)) return;
-  
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/api/workspaces/${encodeURIComponent(workspaceName)}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-      });
-  
-      if (!response.ok) {
-        throw new Error(`Failed to delete workspace: ${response.statusText}`);
-      }
-  
-      const data = await response.json();
-      alert(`Workspace "${workspaceName}" deleted successfully.`);
-      await listWorkspaces(); // Refresh workspace list after deletion
-    } catch (error) {
-      console.error('Error deleting workspace:', error);
-      alert('Error deleting workspace. Check console for details.');
-    }
-  };   
 
   mainCodeHandlingFunction(code); //sets the main component code state (passes the code up to the main component)
   /*
@@ -1085,38 +1066,15 @@ useEffect(() => {
   */
   return (
     <div className="blockly-area">
-    <h2>Workspace</h2>
-    <div className="blockly-div" ref={workspaceRef}></div>
+      <h2>Workspace</h2>
+      <div className="blockly-div" ref={workspaceRef}></div>
     <div className="controls">
       <GenerateCodeButton workspace={workspace} blocklyCodeHandlingFunction={codeHandler} />
       <button onClick={saveWorkspace}>Save Workspace</button>
       <button onClick={loadWorkspace}>Load Workspace</button>
-    </div>
-    <div className="workspace-manager">
-      <h3>Saved Workspaces</h3>
-      <button onClick={listWorkspaces}>Refresh Workspaces</button>
-      {workspaces.length > 0 ? (
-        <table className="workspace-table">
-          <thead>
-            <tr>
-              <th>Workspace Name</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {workspaces.map((name) => (
-              <tr key={name}>
-                <td>{name}</td>
-                <td>
-                  <button onClick={() => deleteWorkspace(name)}>Delete</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <p>No saved workspaces found.</p>
-      )}
+      <button onClick={deleteWorkspace}>Delete Workspace</button>
+      <button onClick={exportWorkspace}>Export Workspace</button>
+      <button onClick={importWorkspace}>Import Workspace</button>
     </div>
   </div>
   );

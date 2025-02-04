@@ -15,6 +15,8 @@ const TicTacToe = ({ quboCode, log }) => {
   const [turnIndicator, setTurnIndicator] = useState('');
   const [gameOver, setGameOver] = useState(false); // New state to track game end
   const [nextGameReady, setNextGameReady] = useState(false); // New state for next game prompt
+  const [gameMode, setGameMode] = useState('Classic'); // Tracks the selected mode
+  const [modeSelection, setModeSelection] = useState(true); // Track mode selection screen
 
   const MAX_WINS_DISPLAY = 3; // Max number of boxes to display wins
   const MOVE_DELAY = 1000; // Customizable delay in milliseconds, change as needed
@@ -27,24 +29,39 @@ const TicTacToe = ({ quboCode, log }) => {
       } else if (currentPlayer === 'O' && player2Type === 'CPU') {
         setTurnIndicator('Player 2 (CPU) is making a move...');
         setTimeout(() => handleCPUMove(player2Difficulty), MOVE_DELAY);
+      } else if (currentPlayer === 'O' && player2Type === 'Quantum CPU') { 
+        setTurnIndicator('Player 2 (Quantum CPU) is making a move...');
+        setTimeout(fetchQuantumMove, MOVE_DELAY); // Use the same fetchQuantumMove logic
       } else if (currentPlayer === 'X' && player1Type === 'Quantum CPU') {
         setTurnIndicator('Player 1 (Quantum CPU) is making a move...');
         setTimeout(fetchQuantumMove, MOVE_DELAY);
       } else {
-        setTurnIndicator(`It's ${currentPlayer === 'X' ? 'Player 1' : 'Player 2'}'s turn`);
+        setTurnIndicator(
+          `It's ${currentPlayer === 'X' ? 'Player 1' : 'Player 2'}'s turn`
+        );
       }
     }
   }, [currentPlayer, gameSetup, gameOver]);
+  
 
-  const startGame = () => {
-    setGameSetup(true);
-    setCells(Array(9).fill(''));
-    setCurrentPlayer('X');
-    setTurnIndicator("It's Player 1's turn");
-    setGameOver(false); // Reset gameOver state
-    setNextGameReady(false); // Reset next game state
-    log('> Game started\n\n');
-  };
+  // Function to handle starting the game after setup
+const startGame = () => {
+  setGameSetup(true); // Transition to the game board
+  setCells(Array(9).fill('')); // Reset board
+  setCurrentPlayer('X');
+  setTurnIndicator("It's Player 1's turn");
+  setGameOver(false); // Reset game over state
+  setNextGameReady(false); // Reset next game state
+  log(`> ${gameMode} Mode started\n\n`);
+};
+
+// Function to handle mode selection
+const handleModeSelection = (mode) => {
+  setGameMode(mode);
+  setModeSelection(false); // Move to setup screen
+  log(`> ${mode} Mode selected\n\n`);
+};
+
 
   const handleCellClick = (index) => {
     if (cells[index] || gameSetup === false || gameOver) return;
@@ -147,46 +164,126 @@ const TicTacToe = ({ quboCode, log }) => {
     const availableCells = cells
       .map((cell, index) => (cell === '' ? index : null))
       .filter((index) => index !== null);
-
+  
+    log(`> Available cells for CPU: ${availableCells}\n`);
     let chosenCell;
+  
     if (difficulty === 'Easy') {
+      // Easy: Random move
       chosenCell = availableCells[Math.floor(Math.random() * availableCells.length)];
+      log(`> CPU (Easy) chose cell: ${chosenCell}\n`);
     } else if (difficulty === 'Medium') {
-      const corners = [0, 2, 6, 8].filter((index) => availableCells.includes(index));
-      chosenCell =
-        corners.length > 0
-          ? corners[Math.floor(Math.random() * corners.length)]
-          : availableCells[Math.floor(Math.random() * availableCells.length)];
+      // Medium: Check for winning or blocking moves
+      for (let cell of availableCells) {
+        const testCells = [...cells];
+        testCells[cell] = currentPlayer;
+  
+        // Check if the move wins the game
+        if (checkWinner(testCells)) {
+          chosenCell = cell;
+          log(`> CPU (Medium) found winning move: ${chosenCell}\n`);
+          break;
+        }
+  
+        // Check if the opponent can win next move
+        const opponent = currentPlayer === 'X' ? 'O' : 'X';
+        testCells[cell] = opponent;
+        if (checkWinner(testCells)) {
+          chosenCell = cell;
+          log(`> CPU (Medium) found blocking move: ${chosenCell}\n`);
+          break;
+        }
+      }
+  
+      // If no strategic move, choose randomly
+      if (chosenCell === undefined) {
+        chosenCell = availableCells[Math.floor(Math.random() * availableCells.length)];
+        log(`> CPU (Medium) chose random move: ${chosenCell}\n`);
+      }
     } else if (difficulty === 'Hard') {
-      chosenCell = getBestMove() || availableCells[Math.floor(Math.random() * availableCells.length)];
+      // Hard: Minimax algorithm
+      chosenCell = getBestMove(cells, currentPlayer);
+      log(`> CPU (Hard) chose cell: ${chosenCell}\n`);
     }
-
+  
     makeMove(chosenCell);
-  };
-
-  const getBestMove = () => {
-    // Placeholder for complex logic (e.g., minimax)
-    return null;
-  };
+  };  
+  
+  
+  const getBestMove = (board, player) => {
+    const opponent = player === 'X' ? 'O' : 'X';
+  
+    const minimax = (newBoard, currentPlayer) => {
+      const availableCells = newBoard
+        .map((cell, index) => (cell === '' ? index : null))
+        .filter((index) => index !== null);
+  
+      // Check for terminal states
+      if (checkWinner(newBoard)) {
+        const score = currentPlayer === player ? -1 : 1;
+        log(`> Minimax: Terminal state found. Score: ${score}\n`);
+        return { score };
+      } else if (availableCells.length === 0) {
+        log('> Minimax: Draw state reached. Score: 0\n');
+        return { score: 0 }; // Draw
+      }
+  
+      const moves = [];
+      for (let cell of availableCells) {
+        const testBoard = [...newBoard];
+        testBoard[cell] = currentPlayer;
+  
+        const result = minimax(testBoard, currentPlayer === 'X' ? 'O' : 'X');
+        moves.push({ index: cell, score: result.score });
+      }
+  
+      // Select the best move
+      let bestMove;
+      if (currentPlayer === player) {
+        let maxScore = -Infinity;
+        for (let move of moves) {
+          if (move.score > maxScore) {
+            maxScore = move.score;
+            bestMove = move;
+          }
+        }
+      } else {
+        let minScore = Infinity;
+        for (let move of moves) {
+          if (move.score < minScore) {
+            minScore = move.score;
+            bestMove = move;
+          }
+        }
+      }
+  
+      log(`> Minimax: Best move for ${currentPlayer} is cell ${bestMove.index} with score ${bestMove.score}\n`);
+      return bestMove;
+    };
+  
+    return minimax(board, player).index;
+  };    
 
   const fetchQuantumMove = async () => {
     var createQuboForSingleMove = () => {};
-
+  
     try {
       eval(quboCode);
-
+  
       if (typeof createQuboForSingleMove !== 'function') {
         throw new Error("createQuboForSingleMove is not defined or not a function.");
       }
-
+  
       const qubo = createQuboForSingleMove(cells);
       log('> QUBO Generated by Blockly Code\n\n');
-
+  
       const response = await axios.post('http://localhost:8000/quantum', qubo);
-
+  
       if (response.data && response.data.solution !== undefined && response.data.energy !== undefined) {
-        makeMove(response.data.solution, 'X');
-        log(`> Quantum Server calculated X placement at cell ${response.data.solution} based on QUBO generated from Blockly Workspace\n\n`);
+        makeMove(response.data.solution, currentPlayer); // Pass the current player dynamically
+        log(
+          `> Quantum Server calculated ${currentPlayer} placement at cell ${response.data.solution} based on QUBO generated from Blockly Workspace\n\n`
+        );
       } else {
         log('> Quantum Server Error: Invalid response format or missing data.\n\n');
       }
@@ -195,6 +292,7 @@ const TicTacToe = ({ quboCode, log }) => {
       log('> Quantum Server Error: QUBO format may be invalid, or server connection error occurred.\n\n');
     }
   };
+  
 
   const checkWinner = (currentCells) => {
     const winningCombos = [
@@ -222,9 +320,9 @@ const TicTacToe = ({ quboCode, log }) => {
     setCurrentPlayer('X');
     setGameSetup(false);
     setTurnIndicator('');
-    setGameOver(false); // Reset game over state
-    setNextGameReady(false); // Reset next game state
-    log('> Game reset to setup screen\n\n');
+    setGameOver(false);
+    setNextGameReady(false);
+    setPlayerWins({ X: 0, O: 0 }); // Reset scores
   };
 
   const saveGame = (state) => {
@@ -292,99 +390,154 @@ const TicTacToe = ({ quboCode, log }) => {
     return <div className="scoreboard-row">{scoreBoxes.join(' ')}</div>;
   };
 
-  return (
-    <div className="container">
-      <h1>Tic Tac Toe</h1>
-
-      {gameSetup ? (
-        <>
-          <div className="scoreboard">
-            <div>Player 1 (X): {renderScoreboard(playerWins.X, 'X')}</div>
-            <div>Player 2 (O): {renderScoreboard(playerWins.O, 'O')}</div>
-          </div>
-
-          <div className="board">
-            {cells.map((cell, index) => (
-              <div
-                key={index}
-                className="cell"
-                onClick={() => handleCellClick(index)}
-              >
-                {cell}
-              </div>
-            ))}
-          </div>
-
-          <p className="turn-indicator">{turnIndicator}</p>
-
-          {nextGameReady && (
-            <button onClick={startNextGame} className="next-game-button">
-              Start Next Game
-            </button>
-          )}
-
-          <div className="controls">
-            <button onClick={resetToSetup}>Reset to Setup</button>
-            <button onClick={() => saveGame({ cells, currentPlayer })}>Save</button>
-            <button onClick={handleLoadGame}>Load</button>
-            <button onClick={clearSavedGame}>Clear Save</button>
-          </div>
-        </>
-      ) : (
-        <div className="setup">
-          <h2>Game Setup</h2>
-          <label>
-            Player 1 (X):
-            <select value={player1Type} onChange={(e) => handlePlayerTypeChange('player1', e.target.value)}>
-              <option value="Human">Human</option>
-              <option value="CPU">CPU</option>
-              <option value="Quantum CPU">Quantum CPU</option>
-            </select>
-          </label>
-          {player1Type === 'CPU' && (
-            <label>
-              Player 1 CPU Difficulty:
-              <select
-                value={player1Difficulty}
-                onChange={(e) => setPlayer1Difficulty(e.target.value)}
-                disabled={!unlockedDifficulties.includes(player1Difficulty)}
-              >
-                {unlockedDifficulties.map((difficulty) => (
-                  <option key={difficulty} value={difficulty}>
-                    {difficulty}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-          <label>
-            Player 2 (O):
-            <select value={player2Type} onChange={(e) => handlePlayerTypeChange('player2', e.target.value)}>
-              <option value="Human">Human</option>
-              <option value="CPU">CPU</option>
-            </select>
-          </label>
-          {player2Type === 'CPU' && (
-            <label>
-              Player 2 CPU Difficulty:
-              <select
-                value={player2Difficulty}
-                onChange={(e) => setPlayer2Difficulty(e.target.value)}
-                disabled={!unlockedDifficulties.includes(player2Difficulty)}
-              >
-                {unlockedDifficulties.map((difficulty) => (
-                  <option key={difficulty} value={difficulty}>
-                    {difficulty}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-          <button onClick={startGame}>Start Game</button>
-        </div>
-      )}
+  const renderModeSelection = () => (
+    <div className="mode-selection">
+      <h2>Select Game Mode</h2>
+      <button onClick={() => handleModeSelection('Classic Mode')}>Classic Mode</button>
+      <button onClick={() => handleModeSelection('Game Mode')}>Game Mode</button>
     </div>
+  );
+
+  // Modify the difficulty dropdown rendering to enforce rules for Game Mode
+const renderDifficultyOptions = (player) => {
+  const playerDifficulty = player === 'player1' ? player1Difficulty : player2Difficulty;
+  const handleChange = (e) =>
+    player === 'player1'
+      ? setPlayer1Difficulty(e.target.value)
+      : setPlayer2Difficulty(e.target.value);
+
+  const allowedDifficulties =
+    gameMode === 'Game'
+      ? unlockedDifficulties // Restrict difficulties based on unlocks
+      : ['Easy', 'Medium', 'Hard'];
+
+  return (
+    <select value={playerDifficulty} onChange={handleChange}>
+      {allowedDifficulties.map((difficulty) => (
+        <option key={difficulty} value={difficulty}>
+          {difficulty}
+        </option>
+      ))}
+    </select>
   );
 };
 
+const resetToModeSelection = () => {
+  setGameSetup(false);
+  setModeSelection(true); // Return to mode selection
+  setCells(Array(9).fill('')); // Clear the board
+  setCurrentPlayer('X'); // Reset the current player
+  setTurnIndicator('');
+  setGameOver(false); // Reset game over state
+  setNextGameReady(false); // Reset next game state
+  setPlayer1Type('Human'); // Reset player types
+  setPlayer2Type('CPU');
+  setPlayer1Difficulty('Easy');
+  setPlayer2Difficulty('Easy');
+  setUnlockedDifficulties(['Easy']); // Reset unlocked difficulties
+  setPlayerWins({ X: 0, O: 0 }); // Reset the scoreboard
+  log('> Reset to mode selection\n\n');
+};
+
+// JSX for mode selection
+if (modeSelection) {
+  return (
+    <div className="mode-selection">
+      <h2>Select Game Mode</h2>
+      <button onClick={() => handleModeSelection('Classic')}>Classic Mode</button>
+      <button onClick={() => handleModeSelection('Game')}>Game Mode</button>
+    </div>
+  );
+}
+  
+// Main rendering logic
+return (
+  <div className="container">
+    <h1>Tic Tac Toe</h1>
+
+    {/* Reset to Mode Selection Button */}
+    <button
+      onClick={resetToModeSelection}
+      className="reset-mode-selection-button"
+    >
+      Return to Mode Selection
+    </button>
+
+    {modeSelection ? (
+      <div className="mode-selection">
+        <h2>Select Game Mode</h2>
+        <button onClick={() => handleModeSelection('Classic')}>Classic Mode</button>
+        <button onClick={() => handleModeSelection('Game')}>Game Mode</button>
+      </div>
+    ) : gameSetup ? (
+      <>
+        <div className="scoreboard">
+          <div>Player 1 (X): {renderScoreboard(playerWins.X, 'X')}</div>
+          <div>Player 2 (O): {renderScoreboard(playerWins.O, 'O')}</div>
+        </div>
+
+        <div className="board">
+          {cells.map((cell, index) => (
+            <div
+              key={index}
+              className="cell"
+              onClick={() => handleCellClick(index)}
+            >
+              {cell}
+            </div>
+          ))}
+        </div>
+
+        <p className="turn-indicator">{turnIndicator}</p>
+
+        {nextGameReady && (
+          <button onClick={startNextGame} className="next-game-button">
+            Start Next Game
+          </button>
+        )}
+
+        <div className="controls">
+          <button onClick={resetToSetup}>Reset to Setup</button>
+          <button onClick={() => saveGame({ cells, currentPlayer })}>Save</button>
+          <button onClick={handleLoadGame}>Load</button>
+          <button onClick={clearSavedGame}>Clear Save</button>
+        </div>
+      </>
+    ) : (
+      <div className="setup">
+        <h2>{gameMode} Setup</h2>
+        <label>
+          Player 1 (X):
+          <select value={player1Type} onChange={(e) => handlePlayerTypeChange('player1', e.target.value)}>
+            <option value="Human">Human</option>
+            <option value="CPU">CPU</option>
+            <option value="Quantum CPU">Quantum CPU</option>
+          </select>
+        </label>
+        {player1Type === 'CPU' && (
+          <label>
+            Player 1 CPU Difficulty:
+            {renderDifficultyOptions('player1')}
+          </label>
+        )}
+        <label>
+          Player 2 (O):
+          <select value={player2Type} onChange={(e) => handlePlayerTypeChange('player2', e.target.value)}>
+            <option value="Human">Human</option>
+            <option value="CPU">CPU</option>
+            <option value="Quantum CPU">Quantum CPU</option>
+          </select>
+        </label>
+        {player2Type === 'CPU' && (
+          <label>
+            Player 2 CPU Difficulty:
+            {renderDifficultyOptions('player2')}
+          </label>
+        )}
+        <button onClick={startGame}>Start Game</button>
+      </div>
+    )}
+  </div>
+);
+};
 export default TicTacToe;
