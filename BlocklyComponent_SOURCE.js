@@ -1,6 +1,6 @@
 import './BlocklyComponent.css';
 import { useRef, useEffect, useState } from 'react';
-import Blockly from 'blockly/core';
+import Blockly from 'blockly';
 import { pythonGenerator } from 'blockly/python';
 import { javascriptGenerator } from 'blockly/javascript';
 import './blocks/dictionary';
@@ -20,9 +20,7 @@ import './blocks/for_loop';
 import './blocks/key_pair';
 import './blocks/function';
 import './blocks/board';
-import './blocks/qubo_blocks';
 import './javascriptGenerators';
-
 
 
 /*
@@ -47,84 +45,6 @@ function GenerateCodeButton({ workspace, blocklyCodeHandlingFunction }) {
     </>
   )
 }
-
-
-//SAVE BLOCKS FUNCTION!!!!!!!!! Kinda works
-
-function SaveAsBlockButton({ workspace }) {
-  const handleSaveAsBlock = () => {
-    if (workspace) {
-      const selectedBlocks = workspace.getTopBlocks(true); // Get all top-level blocks
-      if (selectedBlocks.length) {
-        // Serialize each selected block
-        const blockJsonList = selectedBlocks.map((block) =>
-          Blockly.serialization.blocks.save(block)
-        );
-
-        const toolbox = workspace.options.languageTree;
-
-        if (toolbox) {
-          // Ensure "Saved Blocks" category exists
-          let savedCategory = toolbox.contents.find(
-            (category) => category.kind === 'category' && category.name === 'Saved Blocks'
-          );
-
-          if (!savedCategory) {
-            savedCategory = {
-              kind: 'category',
-              name: 'Saved Blocks',
-              colour: '#FFAB19',
-              contents: [],
-            };
-            toolbox.contents.push(savedCategory);
-          }
-
-          // Add each saved block as a new block to the toolbox
-          blockJsonList.forEach((blockJson, index) => {
-            const blockType = `saved_block_${Date.now()}_${index}`; // Unique block type
-
-            // Dynamically register the block type
-            Blockly.Blocks[blockType] = {
-              init: function () {
-                const block = Blockly.serialization.blocks.append(
-                  blockJson,
-                  this.workspace
-                );
-                // Ensure proper layout, no specific positioning required here
-                block.moveBy(0, 0);
-              },
-            };
-
-            // Check if the block already exists in the toolbox; prevent duplicates
-            const existingBlock = savedCategory.contents.find(
-              (content) => content.type === blockType
-            );
-
-            if (!existingBlock) {
-              savedCategory.contents.push({
-                kind: 'block',
-                type: blockType,
-              });
-            }
-          });
-
-          // Refresh the toolbox to show the new blocks
-          workspace.updateToolbox(toolbox);
-
-          alert('Block(s) saved successfully in the "Saved Blocks" category.');
-        } else {
-          alert('Failed to access the toolbox. Please try again.');
-        }
-      } else {
-        alert('No blocks selected to save.');
-      }
-    }
-  };
-
-  return <button onClick={handleSaveAsBlock}>Save Blocks</button>;
-}
-//END SAVE FUNCTION 
-
 
 /*
   BlocklyComponent displays the actual Blockly Toolbox and Workspace where user will code their solution.
@@ -956,18 +876,7 @@ function BlocklyComponent({ mainCodeHandlingFunction, log}) {
                 "type": "board"
               }
             ]
-          },
-          {
-            kind: 'category',
-            name: 'QUBO Blocks',
-            colour: '#5C81A6',
-            contents: [
-              { kind: 'block', type: 'init_dictionaries' },
-              { kind: 'block', type: 'set_linear_weight' },
-              { kind: 'block', type: 'set_quadratic_weight' },
-              { kind: 'block', type: 'return_dictionaries' },
-            ]
-          }        
+          }
         ]
       };
 
@@ -1029,7 +938,6 @@ function BlocklyComponent({ mainCodeHandlingFunction, log}) {
 
       </div>
       <GenerateCodeButton workspace={workspace} blocklyCodeHandlingFunction={codeHandler} />
-      <SaveAsBlockButton workspace={workspace} />
     </div>
   );
 }
