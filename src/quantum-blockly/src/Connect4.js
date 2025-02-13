@@ -8,6 +8,7 @@ const Connect4 = ({quboCode, log}) => {
   const [cells, setCells] = useState(Array(42).fill(''));
   const [difficulty, setDifficulty] = useState('Easy');
   const [gamemode, setGamemode] = useState('PVC')
+  const [gameOver, setGameOver] = useState(false);
 
   useEffect(() => {
     const savedState = loadGame();
