@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './Connect4.css'; // Import your CSS file or add styles directly here
+import './Connect4.css'; 
 import { COLLAPSED_FIELD_NAME } from 'blockly';
 
 const Connect4 = ({quboCode, log}) => {
@@ -8,7 +8,6 @@ const Connect4 = ({quboCode, log}) => {
   const [cells, setCells] = useState(Array(42).fill(''));
   const [difficulty, setDifficulty] = useState('Easy');
   const [gamemode, setGamemode] = useState('PVC')
-  const [gameOver, setGameOver] = useState(false);
 
   useEffect(() => {
     const savedState = loadGame();
