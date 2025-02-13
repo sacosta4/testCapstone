@@ -172,12 +172,12 @@ const Connect4 = ({quboCode, log}) => {
   };
 
   const saveGame = (state) => {
-    localStorage.setItem('ticTacToeGameState', JSON.stringify(state));
+    localStorage.setItem('connect4GameState', JSON.stringify(state));
     log('> Game state saved\n\n');
   };
 
   const loadGame = () => {
-    const savedState = localStorage.getItem('ticTacToeGameState');
+    const savedState = localStorage.getItem('connect4GameState');
     return savedState ? JSON.parse(savedState) : null;
   };
 
@@ -194,7 +194,7 @@ const Connect4 = ({quboCode, log}) => {
   };
 
   const clearSavedGame = () => {
-    localStorage.removeItem('ticTacToeGameState');
+    localStorage.removeItem('connect4GameState');
     alert('Saved game cleared.');
     log('> Saved game cleared\n\n');
   };

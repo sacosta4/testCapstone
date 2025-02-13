@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './TicTacToe.css'; // Ensure CSS adjustments for scoreboard are included
+//import './TicTacToe.css'; // Ensure CSS adjustments for scoreboard are included
 
 const TicTacToe = ({ quboCode, log }) => {
   const [gameSetup, setGameSetup] = useState(false);
@@ -453,7 +453,7 @@ return (
           <div>Player 2 (O): {renderScoreboard(playerWins.O, 'O')}</div>
         </div>
 
-        <div className="board">
+        <div className="ticboard">
           {cells.map((cell, index) => (
             <div
               key={index}
