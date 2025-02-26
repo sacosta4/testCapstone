@@ -1,27 +1,57 @@
 import './BlocklyComponent.css';
+import './javascriptGenerators';
+import { toolboxConfig } from "./toolboxConfig";
 import { useRef, useEffect, useState } from 'react';
 import Blockly from 'blockly/core';
 import { pythonGenerator } from 'blockly/python';
 import { javascriptGenerator } from 'blockly/javascript';
-import './blocks/dictionary';
-import './blocks/update_dict';
-import './blocks/merge_dict';
-import './blocks/quad_dictionary';
-import './blocks/update_quad_dict';
-import './blocks/key_value';
-import './blocks/quad_pair';
-import './blocks/key_block';
-import './blocks/value_block';
-import './blocks/dictionary_block';
-import './blocks/const_block';
-import './blocks/board_length';
-import './blocks/check_index';
-import './blocks/for_loop';
-import './blocks/key_pair';
-import './blocks/function';
-import './blocks/board';
-import './javascriptGenerators';
-import './blocks/qubo_blocks';
+import minimaxBlockly from "./minimaxBlockly.json";
+import "./blockImports";
+import "./toolboxConfig"
+import "./useBlocklyWorkspace"
+
+
+/*
+  BlocklyComponent displays the actual Blockly Toolbox and Workspace where user will code their solution.
+  @param mainCodeHandlingFunction is the setter method for the code. It will be passed into the BlocklyComponent
+  by its parent component (the main component) and will be used to set the state of the code of the main component.
+  This is done so the code can be passed up from the BlocklyComponent to the MainComponent.
+*/
+function BlocklyComponent({ mainCodeHandlingFunction, log}) {
+  const workspaceRef = useRef(null); // DOM reference to the workspace div needed for injection
+  const [workspace, setWorkspace] = useState(null); // the component will manage the state of the workspace, needed so that the workspace can be passed into the Generate Code Button Component
+  const [code, setCode] = useState(''); // The component has its own code state to be retrieved from the blockly code handling function
+  const [workspaceName, setWorkspaceName] = useState('');
+  const [workspaces, setWorkspaces] = useState([]);
+
+
+  useEffect(() => {
+    if (!workspaceRef.current) {
+      console.warn("Blockly container is not yet in the DOM");
+      return;
+    }
+
+    console.log("Injecting Blockly into: ", workspaceRef.current);
+
+    const currWorkspace = Blockly.inject(workspaceRef.current, {
+      toolbox: toolboxConfig,
+      zoom: {
+        controls: true,
+        wheel: true,
+        startScale: 1.0,
+        maxScale: 3,
+        minScale: 0.3,
+        scaleSpeed: 1.2,
+      },
+    });
+
+    setWorkspace(currWorkspace);
+
+    return () => {
+      currWorkspace.dispose(); // Cleanup on unmount
+    };
+  }, []); // Runs only once when component mounts
+  
 
 //SAVE BLOCKS FUNCTION!!!!!!!!! Kinda works
 
@@ -97,7 +127,7 @@ function SaveAsBlockButton({ workspace }) {
 
   return <button onClick={handleSaveAsBlock}>Save Blocks</button>;
 }
-//END SAVE FUNCTION 
+
 
 /*
   GenerateCodeButton represents the component that hosts the button that'll generate code when clicked
@@ -105,908 +135,88 @@ function SaveAsBlockButton({ workspace }) {
   to generate code from.
   Initially, the workspace is going to be null, but then the state of it will be changed by the BlocklyComponent
   so the GenerateCodeButton will get rerendered with the new workspace passed into its event handler.
+  
+  - Extracts the QUBO data from the Blockly workspace.
+  - This function retrieves the `linear` and `quadratic` dictionaries, 
+  - which are used for quantum computation. Modify this function 
+  - based on how your blocks store QUBO data.
 */
 function GenerateCodeButton({ workspace, blocklyCodeHandlingFunction }) {
+  
+  // Function to extract QUBO data from the workspace
+  const extractQUBOData = (workspace) => {
+    // Simulated extraction from Blockly workspace (modify if needed)
+    const quboData = {
+      linear: {
+        "0": 1.0,
+        "1": -2.5,
+        "2": 3.0
+      },
+      quadratic: {
+        "0,1": -0.5,
+        "1,2": 2.0
+      }
+    };
+    return quboData;
+  };
 
-  //handleGenerate button is the click event for the button in the component. It takes the workspace and generates python code from it. Then uses the passed in code handling function to set the state of the code for the Blockly Component.
-  const handleGenerate = () => {
+  /*
+   Handles the "Generate Code" button click event.
+   - Converts the Blockly workspace into JavaScript code.
+   - Extracts the QUBO data from the workspace.
+   - Logs the extracted JSON before sending it to the server.
+   - Sends the JSON to the Flask server for processing.
+   - Logs the server response or catches errors if any occur.
+   */
+
+  // Handle Generate button click
+  const handleGenerate = async () => {
     if (workspace) {
       const code = javascriptGenerator.workspaceToCode(workspace);
-      blocklyCodeHandlingFunction(code); //sets the blocklycomponent code state
+      blocklyCodeHandlingFunction(code); // Sets the blockly component's code state
+
+      // Extract QUBO data from the workspace
+      const quboData = extractQUBOData(workspace);
+      
+      // Log the generated QUBO JSON
+      console.log("📤 Sending QUBO Data to Server:", JSON.stringify(quboData, null, 2));
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/quantum", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(quboData),
+        });
+
+        const result = await response.json();
+        console.log("✅ Server Response:", result);
+
+        if (!response.ok) {
+          throw new Error(`Server Error: ${result.error}`);
+        }
+
+      } catch (error) {
+        console.error("❌ Error Sending Data:", error);
+      }
     }
-  }
+  };
+
   return (
     <>
       <button id="generate-btn" onClick={handleGenerate}>Generate Code</button>
     </>
-  )
+  );
 }
 
-/*
-  BlocklyComponent displays the actual Blockly Toolbox and Workspace where user will code their solution.
-  @param mainCodeHandlingFunction is the setter method for the code. It will be passed into the BlocklyComponent
-  by its parent component (the main component) and will be used to set the state of the code of the main component.
-  This is done so the code can be passed up from the BlocklyComponent to the MainComponent.
-*/
-function BlocklyComponent({ mainCodeHandlingFunction, log}) {
-  const workspaceRef = useRef(null); // DOM reference to the workspace div needed for injection
-  const [workspace, setWorkspace] = useState(null); // the component will manage the state of the workspace, needed so that the workspace can be passed into the Generate Code Button Component
-  const [code, setCode] = useState(''); // The component has its own code state to be retrieved from the blockly code handling function
-  const [workspaceName, setWorkspaceName] = useState('');
-  const [workspaces, setWorkspaces] = useState([]);
-
-// Fetch workspaces when the component loads
-useEffect(() => {
-  fetchWorkspaces();
-}, []);
-
-  //useEffect is a hook with a function that is called after the component is generated, injects and sets the workspace 
-  useEffect(() => {
-    if (workspaceRef.current) {
-      //toolbox for the workspace
-      const toolbox = {
-        'kind': 'categoryToolbox',
-        'contents': [
-          {
-            'kind': 'category',
-            'name': 'Logic',
-            'categorystyle': 'logic_category',
-            'contents': [
-              {
-                'kind': 'block',
-                'type': 'controls_if',
-              },
-              {
-                'kind': 'block',
-                'type': 'logic_compare',
-              },
-              {
-                'kind': 'block',
-                'type': 'logic_operation',
-              },
-              {
-                'kind': 'block',
-                'type': 'logic_negate',
-              },
-              {
-                'kind': 'block',
-                'type': 'logic_boolean',
-              },
-              {
-                'kind': 'block',
-                'type': 'logic_null',
-              },
-              {
-                'kind': 'block',
-                'type': 'logic_ternary',
-              },
-            ],
-          },
-          {
-            'kind': 'category',
-            'name': 'Loops',
-            'categorystyle': 'loop_category',
-            'contents': [
-              {
-                'kind': 'block',
-                'type': 'controls_repeat_ext',
-                'inputs': {
-                  'TIMES': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 10,
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'controls_whileUntil',
-              },
-              {
-                'kind': 'block',
-                'type': 'controls_for',
-                'inputs': {
-                  'FROM': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 1,
-                      },
-                    },
-                  },
-                  'TO': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 10,
-                      },
-                    },
-                  },
-                  'BY': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 1,
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'controls_forEach',
-              },
-              {
-                'kind': 'block',
-                'type': 'controls_flow_statements',
-              },
-              {
-                'kind': 'block',
-                'type': 'for_loop',
-                'inputs': {
-                  'FROM': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 0,
-                      },
-                    },
-                  },
-                  'TO': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 10,
-                      },
-                    },
-                  },
-                  'BY': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 1,
-                      },
-                    },
-                  },
-                },
-              },
-            ],
-          },
-          {
-            'kind': 'category',
-            'name': 'Math',
-            'categorystyle': 'math_category',
-            'contents': [
-              {
-                'kind': 'block',
-                'type': 'math_number',
-                'fields': {
-                  'NUM': 123,
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'math_arithmetic',
-                'inputs': {
-                  'A': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 1,
-                      },
-                    },
-                  },
-                  'B': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 1,
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'math_single',
-                'inputs': {
-                  'NUM': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 9,
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'math_trig',
-                'inputs': {
-                  'NUM': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 45,
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'math_constant',
-              },
-              {
-                'kind': 'block',
-                'type': 'math_number_property',
-                'inputs': {
-                  'NUMBER_TO_CHECK': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 0,
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'math_round',
-                'fields': {
-                  'OP': 'ROUND',
-                },
-                'inputs': {
-                  'NUM': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 3.1,
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'math_on_list',
-                'fields': {
-                  'OP': 'SUM',
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'math_modulo',
-                'inputs': {
-                  'DIVIDEND': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 64,
-                      },
-                    },
-                  },
-                  'DIVISOR': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 10,
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'math_constrain',
-                'inputs': {
-                  'VALUE': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 50,
-                      },
-                    },
-                  },
-                  'LOW': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 1,
-                      },
-                    },
-                  },
-                  'HIGH': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 100,
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'math_random_int',
-                'inputs': {
-                  'FROM': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 1,
-                      },
-                    },
-                  },
-                  'TO': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 100,
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'math_random_float',
-              },
-              {
-                'kind': 'block',
-                'type': 'math_atan2',
-                'inputs': {
-                  'X': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 1,
-                      },
-                    },
-                  },
-                  'Y': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 1,
-                      },
-                    },
-                  },
-                },
-              },
-            ],
-          },
-          {
-            'kind': 'category',
-            'name': 'Text',
-            'categorystyle': 'text_category',
-            'contents': [
-              {
-                'kind': 'block',
-                'type': 'text',
-              },
-              {
-                'kind': 'block',
-                'type': 'text_multiline',
-              },
-              {
-                'kind': 'block',
-                'type': 'text_join',
-              },
-              {
-                'kind': 'block',
-                'type': 'text_append',
-                'inputs': {
-                  'TEXT': {
-                    'shadow': {
-                      'type': 'text',
-                      'fields': {
-                        'TEXT': '',
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'text_length',
-                'inputs': {
-                  'VALUE': {
-                    'shadow': {
-                      'type': 'text',
-                      'fields': {
-                        'TEXT': 'abc',
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'text_isEmpty',
-                'inputs': {
-                  'VALUE': {
-                    'shadow': {
-                      'type': 'text',
-                      'fields': {
-                        'TEXT': '',
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'text_indexOf',
-                'inputs': {
-                  'VALUE': {
-                    'block': {
-                      'type': 'variables_get',
-                    },
-                  },
-                  'FIND': {
-                    'shadow': {
-                      'type': 'text',
-                      'fields': {
-                        'TEXT': 'abc',
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'text_charAt',
-                'inputs': {
-                  'VALUE': {
-                    'block': {
-                      'type': 'variables_get',
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'text_getSubstring',
-                'inputs': {
-                  'STRING': {
-                    'block': {
-                      'type': 'variables_get',
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'text_changeCase',
-                'inputs': {
-                  'TEXT': {
-                    'shadow': {
-                      'type': 'text',
-                      'fields': {
-                        'TEXT': 'abc',
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'text_trim',
-                'inputs': {
-                  'TEXT': {
-                    'shadow': {
-                      'type': 'text',
-                      'fields': {
-                        'TEXT': 'abc',
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'text_count',
-                'inputs': {
-                  'SUB': {
-                    'shadow': {
-                      'type': 'text',
-                    },
-                  },
-                  'TEXT': {
-                    'shadow': {
-                      'type': 'text',
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'text_replace',
-                'inputs': {
-                  'FROM': {
-                    'shadow': {
-                      'type': 'text',
-                    },
-                  },
-                  'TO': {
-                    'shadow': {
-                      'type': 'text',
-                    },
-                  },
-                  'TEXT': {
-                    'shadow': {
-                      'type': 'text',
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'text_reverse',
-                'inputs': {
-                  'TEXT': {
-                    'shadow': {
-                      'type': 'text',
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'text_print',
-                'inputs': {
-                  'TEXT': {
-                    'shadow': {
-                      'type': 'text',
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'text_prompt_ext',
-                'inputs': {
-                  'TEXT': {
-                    'shadow': {
-                      'type': 'text',
-                      'fields': {
-                        'TEXT': 'abc',
-                      },
-                    },
-                  },
-                },
-              },
-            ],
-          },
-          {
-            'kind': 'category',
-            'name': 'Lists',
-            'categorystyle': 'list_category',
-            'contents': [
-              {
-                'kind': 'block',
-                'type': 'lists_create_with',
-              },
-              {
-                'kind': 'block',
-                'type': 'lists_create_with',
-              },
-              {
-                'kind': 'block',
-                'type': 'lists_repeat',
-                'inputs': {
-                  'NUM': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 5,
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'lists_length',
-              },
-              {
-                'kind': 'block',
-                'type': 'lists_isEmpty',
-              },
-              {
-                'kind': 'block',
-                'type': 'lists_indexOf',
-                'inputs': {
-                  'VALUE': {
-                    'block': {
-                      'type': 'variables_get',
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'lists_getIndex',
-                'inputs': {
-                  'VALUE': {
-                    'block': {
-                      'type': 'variables_get',
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'lists_setIndex',
-                'inputs': {
-                  'LIST': {
-                    'block': {
-                      'type': 'variables_get',
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'lists_getSublist',
-                'inputs': {
-                  'LIST': {
-                    'block': {
-                      'type': 'variables_get',
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'lists_split',
-                'inputs': {
-                  'DELIM': {
-                    'shadow': {
-                      'type': 'text',
-                      'fields': {
-                        'TEXT': ',',
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'lists_sort',
-              },
-              {
-                'kind': 'block',
-                'type': 'lists_reverse',
-              },
-            ],
-          },
-          {
-            'kind': 'category',
-            'name': 'Color',
-            'categorystyle': 'colour_category',
-            'contents': [
-              {
-                'kind': 'block',
-                'type': 'colour_picker',
-              },
-              {
-                'kind': 'block',
-                'type': 'colour_random',
-              },
-              {
-                'kind': 'block',
-                'type': 'colour_rgb',
-                'inputs': {
-                  'RED': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 100,
-                      },
-                    },
-                  },
-                  'GREEN': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 50,
-                      },
-                    },
-                  },
-                  'BLUE': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 0,
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                'kind': 'block',
-                'type': 'colour_blend',
-                'inputs': {
-                  'COLOUR1': {
-                    'shadow': {
-                      'type': 'colour_picker',
-                      'fields': {
-                        'COLOUR': '#ff0000',
-                      },
-                    },
-                  },
-                  'COLOUR2': {
-                    'shadow': {
-                      'type': 'colour_picker',
-                      'fields': {
-                        'COLOUR': '#3333ff',
-                      },
-                    },
-                  },
-                  'RATIO': {
-                    'shadow': {
-                      'type': 'math_number',
-                      'fields': {
-                        'NUM': 0.5,
-                      },
-                    },
-                  },
-                },
-              },
-            ],
-          },
-          {
-            'kind': 'sep',
-          },
-          {
-            'kind': 'category',
-            'name': 'Variables',
-            'categorystyle': 'variable_category',
-            'custom': 'VARIABLE',
-          },
-          {
-            'kind': 'category',
-            'name': 'Functions',
-            'categorystyle': 'procedure_category',
-            'custom': 'PROCEDURE',
-          },
-          {
-            "kind": "category",
-            "name": "Quantum",
-            "colour": "245",
-            "contents": [
-              {
-                "kind": "block",
-                "type": "dictionary"
-              },
-              {
-                "kind": "block",
-                "type": "update_dict"
-              },
-              {
-                "kind": "block",
-                "type": "quad_dictionary"
-              },
-              {
-                "kind": "block",
-                "type": "update_quad_dict"
-              },
-              {
-                "kind": "block",
-                "type": "merge_dict"
-              },
-              {
-                "kind": "block",
-                "type": "key_value"
-              },
-              {
-                "kind": "block",
-                "type": "quad_pair"
-              },
-              {
-                "kind": "block",
-                "type": "key_block"
-              },
-              {
-                "kind": "block",
-                "type": "value_block"
-              },
-              {
-                "kind": "block",
-                "type": "dictionary_block"
-              },
-              {
-                "kind": "block",
-                "type": "const_block"
-              },
-              {
-                "kind": "block",
-                "type": "board_length"
-              },
-              {
-                "kind": "block",
-                "type": "check_index",
-                'inputs': {
-                  'INDEX': {
-                    'shadow': {
-                      'type': 'variables_get',
-                    },
-                  },
-                  'VALUE': {
-                    'shadow': {
-                      'type': 'text',
-                    },
-                  },
-                },
-              },
-              {
-                "kind": "block",
-                "type": "key_pair"
-              },
-              {
-                "kind": "block",
-                "type": "function"
-              },
-              {
-                "kind": "block",
-                "type": "board"
-              }
-            ]
-          },
-          {
-            kind: 'category',
-            name: 'QUBO Blocks',
-            colour: '#5C81A6',
-            contents: [
-              { kind: 'block', type: 'init_dictionaries' },
-              { kind: 'block', type: 'set_linear_weight' },
-              { kind: 'block', type: 'set_quadratic_weight' },
-              { kind: 'block', type: 'return_dictionaries' },
-            ]
-          }
-        ]
-      };
-
-      //Zoom in/out function
-      const currWorkspace = Blockly.inject(workspaceRef.current, {
-        toolbox: toolbox,
-        zoom: {
-          controls: true, // Enable zoom controls (buttons)
-          wheel: true,    // Enable zooming using the mouse wheel
-          startScale: 1.0, // Initial scale of the workspace
-          maxScale: 3,    // Maximum zoom level
-          minScale: 0.3,  // Minimum zoom level
-          scaleSpeed: 1.2 // Speed of zooming
-        }
-      });
-
-      //COMMENTED OUT ALREADY DECLARED >>> const currWorkspace = Blockly.inject(workspaceRef.current, { toolbox: toolbox }) //inject workspace into div referenced by workspaceRef
-
-      if (!workspace) {
-        initializeBlocks(currWorkspace);
-        log('> Blockly Workspace Initialized\n\n');
-      }
-      setWorkspace(currWorkspace); //set the state of workspace
-
-      return () => {
-        currWorkspace.dispose(); // Dispose of the workspace to prevent memory leaks
-      };
-    }
-  }
-    , []);
 
   //this code handler will be passed into the button component and will set the state of the code for the blockly component once the code has been generated
   const codeHandler = (code) => {
     setCode(code);
     log('> Blockly Code Generated\n\n');
   }
+
 
   const initializeBlocks = (workspace) => {
     // Get your saved state from somewhere, e.g. local storage.
@@ -1017,6 +227,7 @@ useEffect(() => {
     Blockly.serialization.workspaces.load(realState, workspace);    
 
   }
+
 
   const fetchWorkspaces = async () => {
     try {
@@ -1029,7 +240,6 @@ useEffect(() => {
       alert('Error fetching workspaces. See console for details.');
     }
   };
-
 
 
   const saveWorkspaceToServer = async (workspaceName, workspaceState) => {
@@ -1058,6 +268,7 @@ useEffect(() => {
     }
   };
   
+
   const loadWorkspaceFromServer = async (workspaceName) => {
     try {
       const response = await fetch(`http://127.0.0.1:8000/api/workspaces/${encodeURIComponent(workspaceName)}`);
@@ -1076,6 +287,7 @@ useEffect(() => {
     }
   };
   
+
   const saveWorkspace = async () => {
     if (!workspace) {
       alert('Workspace is not initialized.');
@@ -1102,6 +314,7 @@ useEffect(() => {
       alert('Error saving workspace. See console for details.');
     }
   };
+
 
   const loadWorkspace = async () => {
     const name = prompt('Enter the name of the workspace to load:');
@@ -1149,6 +362,7 @@ useEffect(() => {
     log(`> Workspace exported successfully as "${filename}".\n\n`);
   };
 
+
   // **IMPORT FUNCTION**
   const importWorkspace = (event) => {
     const file = event.target.files[0];
@@ -1167,7 +381,6 @@ useEffect(() => {
     };
     reader.readAsText(file);
   };
-
 
 
   const listWorkspaces = async () => {
@@ -1190,6 +403,7 @@ useEffect(() => {
     }
   };
   
+
   const deleteWorkspace = async (workspaceName) => {
     if (!window.confirm(`Are you sure you want to delete the workspace "${workspaceName}"?`)) return;
   
@@ -1212,6 +426,33 @@ useEffect(() => {
     }
   };   
 
+
+  const sendToQuantumServer = async (quboData) => {
+    console.log("📤 Sending QUBO Data to Quantum Server:", JSON.stringify(quboData, null, 2));
+
+    try {
+        const response = await fetch('http://127.0.0.1:8000/quantum', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(quboData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Server responded with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("✅ Quantum Server Response:", data);
+
+    } catch (error) {
+        console.error("🚨 Quantum Server Error:", error.message);
+        alert(`Quantum Server Error: ${error.message}`);
+    }
+};
+
+
   mainCodeHandlingFunction(code); //sets the main component code state (passes the code up to the main component)
   /*
     blockly-area: div that comprises the BlocklyComponent
@@ -1222,14 +463,14 @@ useEffect(() => {
   return (
     <div className="blockly-area">
     <h2>Workspace</h2>
-    <div className="blockly-div" ref={workspaceRef}></div>
+    <div className="blockly-div" ref={workspaceRef} style={{ height: "500px", width: "100%" }}></div>
     <div className="controls">
       <GenerateCodeButton workspace={workspace} blocklyCodeHandlingFunction={codeHandler} />
       <SaveAsBlockButton workspace={workspace} />
       <button onClick={saveWorkspace}>Save Workspace</button>
       <button onClick={loadWorkspace}>Load Workspace</button>
       <button onClick={exportWorkspace}>Export Workspace</button>
-        <input type="file" accept=".json" onChange={importWorkspace} />
+      <input type="file" accept=".json" onChange={importWorkspace} />
     </div>
     <div className="workspace-manager">
       <h3>Saved Workspaces</h3>

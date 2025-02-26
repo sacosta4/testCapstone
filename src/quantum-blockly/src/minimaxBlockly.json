@@ -1,0 +1,188 @@
+{
+  "kind": "categoryToolbox",
+  "contents": [
+    {
+      "kind": "category",
+      "name": "Minimax Algorithm",
+      "colour": "200",
+      "contents": [
+        {
+          "kind": "block",
+          "type": "function",
+          "fields": { "NAME": "minimax" },
+          "inputs": {
+            "PARAM": {
+              "block": { "type": "variables_get", "fields": { "VAR": "state" } }
+            },
+            "BODY": {
+              "block": {
+                "type": "controls_if",
+                "inputs": {
+                  "IF0": {
+                    "block": {
+                      "type": "logic_compare",
+                      "fields": { "OP": "EQ" },
+                      "inputs": {
+                        "A": {
+                          "block": {
+                            "type": "text",
+                            "fields": { "TEXT": "terminal_state" }
+                          }
+                        },
+                        "B": {
+                          "block": {
+                            "type": "variables_get",
+                            "fields": { "VAR": "state" }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "DO0": {
+                    "block": {
+                      "type": "return",
+                      "inputs": {
+                        "VALUE": {
+                          "block": {
+                            "type": "math_number",
+                            "fields": { "NUM": 0 }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "next": {
+                  "block": {
+                    "type": "variables_set",
+                    "fields": { "VAR": "best_score" },
+                    "inputs": {
+                      "VALUE": {
+                        "block": {
+                          "type": "math_number",
+                          "fields": { "NUM": -1000 }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "controls_forEach",
+                        "inputs": {
+                          "LIST": {
+                            "block": {
+                              "type": "function_call",
+                              "fields": { "NAME": "get_available_moves" },
+                              "inputs": {
+                                "PARAM": {
+                                  "block": {
+                                    "type": "variables_get",
+                                    "fields": { "VAR": "state" }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "VAR": { "fields": { "VAR": "move" } },
+                          "DO": {
+                            "block": {
+                              "type": "variables_set",
+                              "fields": { "VAR": "score" },
+                              "inputs": {
+                                "VALUE": {
+                                  "block": {
+                                    "type": "function_call",
+                                    "fields": { "NAME": "minimax" },
+                                    "inputs": {
+                                      "PARAM": {
+                                        "block": {
+                                          "type": "function_call",
+                                          "fields": { "NAME": "apply_move" },
+                                          "inputs": {
+                                            "PARAM1": {
+                                              "block": {
+                                                "type": "variables_get",
+                                                "fields": { "VAR": "state" }
+                                              }
+                                            },
+                                            "PARAM2": {
+                                              "block": {
+                                                "type": "variables_get",
+                                                "fields": { "VAR": "move" }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "next": {
+                                "block": {
+                                  "type": "controls_if",
+                                  "inputs": {
+                                    "IF0": {
+                                      "block": {
+                                        "type": "logic_compare",
+                                        "fields": { "OP": "GT" },
+                                        "inputs": {
+                                          "A": {
+                                            "block": {
+                                              "type": "variables_get",
+                                              "fields": { "VAR": "score" }
+                                            }
+                                          },
+                                          "B": {
+                                            "block": {
+                                              "type": "variables_get",
+                                              "fields": { "VAR": "best_score" }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "DO0": {
+                                      "block": {
+                                        "type": "variables_set",
+                                        "fields": { "VAR": "best_score" },
+                                        "inputs": {
+                                          "VALUE": {
+                                            "block": {
+                                              "type": "variables_get",
+                                              "fields": { "VAR": "score" }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "next": {
+                          "block": {
+                            "type": "return",
+                            "inputs": {
+                              "VALUE": {
+                                "block": {
+                                  "type": "variables_get",
+                                  "fields": { "VAR": "best_score" }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

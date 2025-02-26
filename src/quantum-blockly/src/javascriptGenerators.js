@@ -2,6 +2,8 @@ import * as Blockly from 'blockly';
 import { pythonGenerator } from 'blockly/javascript';
 import { javascriptGenerator } from 'blockly/javascript';
 import * as javascript from 'blockly/javascript';
+import './blocks/minimax_blocks'; // Ensure blocks are registered before generating code
+import './javascriptGenerators';  // Ensures JavaScript generator is included
 
 
 javascriptGenerator.scrub_ = function (block, code, thisOnly) {
@@ -208,3 +210,65 @@ javascriptGenerator['linear_term_block'] = function (block) {
     }
     return `const linearTerms = { ${terms.join(', ')} };\n`;
   };
+
+  // generate minimax code and it will return a JSON object with linear and quadratic values.
+  javascriptGenerator.forBlock['minimax'] = function(block) {
+    var depth = javascriptGenerator.valueToCode(block, 'DEPTH', javascriptGenerator.ORDER_ATOMIC) || '0';
+    var boardState = javascriptGenerator.valueToCode(block, 'BOARD_STATE', javascriptGenerator.ORDER_ATOMIC) || '[]';
+  
+    var code = `
+    (function generateQUBO() {
+      let linear = {};
+      let quadratic = {};
+  
+      let moves = getAvailableMoves(${boardState});
+      for (let i = 0; i < moves.length; i++) {
+        linear[i] = Math.random(); // Assign random linear weights for now
+  
+        for (let j = i + 1; j < moves.length; j++) {
+          quadratic[\`\${i},\${j}\`] = Math.random() * -1; // Random quadratic interaction
+        }
+      }
+  
+      return { linear, quadratic };
+    })()`;
+  
+    return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
+  };
+  
+  // Define JavaScript code generation for the Minimax block
+  javascriptGenerator.forBlock['minimax'] = function(block) {
+    var depth = javascriptGenerator.valueToCode(block, 'DEPTH', javascriptGenerator.ORDER_ATOMIC) || '0';
+    var boardState = javascriptGenerator.valueToCode(block, 'BOARD_STATE', javascriptGenerator.ORDER_ATOMIC) || '[]';
+  
+    var code = `
+    (function minimax(board, depth, isMaximizing) {
+      if (depth === 0 || isGameOver(board)) {
+        return evaluateBoard(board);
+      }
+  
+      if (isMaximizing) {
+        let bestScore = -Infinity;
+        let bestMove = null;
+        for (let move of getAvailableMoves(board)) {
+          let newBoard = makeMove(board, move, 'X');
+          let score = minimax(newBoard, depth - 1, false);
+          if (score > bestScore) {
+            bestScore = score;
+            bestMove = move;
+          }
+        }
+        return bestMove;
+      } else {
+        let bestScore = Infinity;
+        for (let move of getAvailableMoves(board)) {
+          let newBoard = makeMove(board, move, 'O');
+          let score = minimax(newBoard, depth - 1, true);
+          bestScore = Math.min(score, bestScore);
+        }
+        return bestScore;
+      }
+    })(${boardState}, ${depth}, true)`;
+  
+    return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
+  };  

@@ -46,12 +46,19 @@ def save_workspace():
         if not workspace_name or not workspace_state:
             return jsonify({"error": "Missing 'name' or 'state'"}), 400
 
-        # Save workspace to a JSON file
+        # Ensure workspace_state has the expected Blockly format
+        if not isinstance(workspace_state, dict) or "blocks" not in workspace_state:
+            return jsonify({"error": "Invalid Blockly workspace format"}), 400
+
+        # Define file path for saving
         file_path = os.path.join(WORKSPACE_DIR, f"{workspace_name}.json")
+
+        # Save workspace JSON to file
         with open(file_path, 'w') as f:
-            json.dump(workspace_state, f)
+            json.dump(workspace_state, f, indent=4)  # Pretty-print JSON for readability
 
         return jsonify({"message": f"Workspace '{workspace_name}' saved successfully"}), 200
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -60,18 +67,31 @@ def save_workspace():
 @app.route('/api/workspaces/<workspace_name>', methods=['GET'])
 def load_workspace(workspace_name):
     try:
-        file_path = os.path.join(WORKSPACE_DIR, f"{workspace_name}.json")
+        # Ensure Minimax workspace is preloaded
+        if workspace_name.lower() == "minimax":
+            minimax_file = "minimaxBlockly.json"
+            minimax_path = os.path.join(WORKSPACE_DIR, minimax_file)
 
+            if not os.path.exists(minimax_path):
+                return jsonify({"error": "Minimax workspace file not found"}), 404
+
+            with open(minimax_path, 'r') as f:
+                workspace_state = json.load(f)
+
+            return jsonify({"state": workspace_state}), 200
+
+        # Load regular workspaces
+        file_path = os.path.join(WORKSPACE_DIR, f"{workspace_name}.json")
         if not os.path.exists(file_path):
             return jsonify({"error": f"Workspace '{workspace_name}' not found"}), 404
 
-        # Read workspace from the JSON file
         with open(file_path, 'r') as f:
             workspace_state = json.load(f)
 
         return jsonify({"state": workspace_state}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 # List all saved workspaces
 @app.route('/api/workspaces', methods=['GET'])
