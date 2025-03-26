@@ -213,7 +213,7 @@ const TicTacToe = ({ quboCode, log }) => {
     }
   };
 
-  // Improved fallback move function
+  // Fallback move function
   const makeFallbackMove = (availableCells, errorReason) => {
     // Double-check available cells
     if (!availableCells || !Array.isArray(availableCells) || availableCells.length === 0) {
@@ -1000,26 +1000,14 @@ const TicTacToe = ({ quboCode, log }) => {
       }
     }, 250);
   };
-  
-  const MAX_WINS_TO_WIN_SERIES = 2; // Number of wins needed to win the series
 
-  const resetScoreboard = () => {
-    setPlayerWins({ X: 0, O: 0 }); // Reset the scoreboard
-  };
+  const MAX_WINS_TO_WIN_SERIES = 2; // Number of wins needed to win the series
 
   const prepareNextGame = () => {
     setNextGameReady(true);
     // Don't set gameOver to false yet - keep it true until user starts next game
     log("> Game complete. Ready for next round\n\n");
   };
-
-  const resetBoard = () => {
-    setCells(Array(9).fill(''));
-    setCurrentPlayer('X');
-    setTurnIndicator("It's Player 1's turn");
-    setGameOver(false); // Allow new game to proceed
-    setProcessingMove(false); // Reset the processing flag
-  };      
   
   const findStrategicMove = (availableCells, board, player) => {
     const opponent = player === 'X' ? 'O' : 'X';

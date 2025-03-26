@@ -24,17 +24,6 @@ javascriptGenerator.scrub_ = function (block, code, thisOnly) {
     return code + codeNext;
 };
 
-javascriptGenerator.forBlock['function'] = function (block, generator) {
-    var name = block.getFieldValue('NAME').replace(/\s/g, '_');
-    var param = generator.valueToCode(block, 'PARAM', javascript.Order.ATOMIC);
-    var body = generator.statementToCode(block, 'BODY');
-    var linear = generator.valueToCode(block, 'LINEAR', javascript.Order.ATOMIC);
-    var quadratic = generator.valueToCode(block, 'QUADRATIC', javascript.Order.ATOMIC);
-    // TODO: Assemble javascript into code variable.
-    var code = `${name} = (${param}) => {\n${body} return {'linear': ${linear}, 'quadratic': ${quadratic}};\n}`
-    return code;
-};
-
 javascriptGenerator.forBlock['key_pair'] = function (block, generator) {
     var key1 = generator.valueToCode(block, 'KEY1', javascript.Order.ATOMIC);
     var key2 = generator.valueToCode(block, 'KEY2', javascript.Order.ATOMIC);
@@ -188,15 +177,6 @@ javascriptGenerator['linear_term_block'] = function (block) {
     return `const linearTerms = { ${terms.join(', ')} };\n`;
   };
   
-  //New functions for qubo_blocks blockly side libraries
-
-// Linear Term Block Generator
-javascriptGenerator['linear_term_block'] = function (block) {
-    const key = block.getFieldValue('KEY');
-    const value = javascriptGenerator.valueToCode(block, 'VALUE', javascript.ORDER_ATOMIC) || 0;
-    return `{ key: "${key}", value: ${value} }`;
-  };
-  
   // QUBO Main Block Generator
   javascriptGenerator['qubo_main_block'] = function (block) {
     const terms = [];
@@ -208,128 +188,6 @@ javascriptGenerator['linear_term_block'] = function (block) {
     }
     return `const linearTerms = { ${terms.join(', ')} };\n`;
   };
-
-  // generate minimax code and it will return a JSON object with linear and quadratic values.
-  javascriptGenerator.forBlock['minimax'] = function(block) {
-    var depth = javascriptGenerator.valueToCode(block, 'DEPTH', javascriptGenerator.ORDER_ATOMIC) || '0';
-    var boardState = javascriptGenerator.valueToCode(block, 'BOARD_STATE', javascriptGenerator.ORDER_ATOMIC) || '[]';
-  
-    var code = `
-    (function generateQUBO() {
-      let linear = {};
-      let quadratic = {};
-  
-      let moves = getAvailableMoves(${boardState});
-      for (let i = 0; i < moves.length; i++) {
-        linear[i] = Math.random(); // Assign random linear weights for now
-  
-        for (let j = i + 1; j < moves.length; j++) {
-          quadratic[\`\${i},\${j}\`] = Math.random() * -1; // Random quadratic interaction
-        }
-      }
-  
-      return { linear, quadratic };
-    })()`;
-  
-    return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
-  };
-  
-  // Define JavaScript code generation for the Minimax block
-  javascriptGenerator.forBlock['minimax'] = function(block) {
-    var depth = javascriptGenerator.valueToCode(block, 'DEPTH', javascriptGenerator.ORDER_ATOMIC) || '0';
-    var boardState = javascriptGenerator.valueToCode(block, 'BOARD_STATE', javascriptGenerator.ORDER_ATOMIC) || '[]';
-  
-    var code = `
-    (function minimax(board, depth, isMaximizing) {
-      if (depth === 0 || isGameOver(board)) {
-        return evaluateBoard(board);
-      }
-  
-      if (isMaximizing) {
-        let bestScore = -Infinity;
-        let bestMove = null;
-        for (let move of getAvailableMoves(board)) {
-          let newBoard = makeMove(board, move, 'X');
-          let score = minimax(newBoard, depth - 1, false);
-          if (score > bestScore) {
-            bestScore = score;
-            bestMove = move;
-          }
-        }
-        return bestMove;
-      } else {
-        let bestScore = Infinity;
-        for (let move of getAvailableMoves(board)) {
-          let newBoard = makeMove(board, move, 'O');
-          let score = minimax(newBoard, depth - 1, true);
-          bestScore = Math.min(score, bestScore);
-        }
-        return bestScore;
-      }
-    })(${boardState}, ${depth}, true)`;
-  
-    return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
-  };  
-
-  // Updated function block to support PyQUBO format
-javascriptGenerator.forBlock['function'] = function (block, generator) {
-  var name = block.getFieldValue('NAME').replace(/\s/g, '_');
-  var param = generator.valueToCode(block, 'PARAM', javascript.Order.ATOMIC);
-  var body = generator.statementToCode(block, 'BODY');
-  var linear = generator.valueToCode(block, 'LINEAR', javascript.Order.ATOMIC);
-  var quadratic = generator.valueToCode(block, 'QUADRATIC', javascript.Order.ATOMIC);
-  
-  // Changed to return PyQUBO compatible format
-  var code = `${name} = (${param}) => {
-      const variables = {};
-      const constraints = [];
-      let objective = "";
-      
-      ${body}
-      
-      // For backward compatibility, we'll convert linear and quadratic dictionaries
-      // to PyQUBO format if they're provided
-      if (Object.keys(${linear}).length > 0) {
-          // Convert each linear term to a Binary variable
-          Object.keys(${linear}).forEach(key => {
-              variables['x_' + key] = { "type": "Binary" };
-              // Append to objective
-              if (objective.length > 0) {
-                  objective += " + ";
-              }
-              objective += \`(\${${linear}[key] * x_\${key})\`;
-          });
-      }
-      
-      if (Object.keys(${quadratic}).length > 0) {
-          // Add quadratic terms to objective
-          Object.keys(${quadratic}).forEach(keyPair => {
-              const [key1, key2] = keyPair.split(',');
-              // Ensure variables exist
-              if (!variables['x_' + key1]) {
-                  variables['x_' + key1] = { "type": "Binary" };
-              }
-              if (!variables['x_' + key2]) {
-                  variables['x_' + key2] = { "type": "Binary" };
-              }
-              
-              // Append to objective
-              if (objective.length > 0) {
-                  objective += " + ";
-              }
-              objective += \`(\${${quadratic}[keyPair] * x_\${key1} * x_\${key2})\`;
-          });
-      }
-      
-      return {
-          "variables": variables,
-          "Constraints": constraints,
-          "Objective": objective
-      };
-  }`;
-  
-  return code;
-};
 
 // New block for PyQUBO variable definition
 javascriptGenerator.forBlock['pyqubo_variable'] = function (block, generator) {
