@@ -157,13 +157,16 @@ export const toolboxConfig = {
       },
       {
         kind: "category",
-        name: "Minimax",
-        colour: "#FF5733",
+        name: "PyQUBO",
+        colour: "#4169E1", // Royal Blue
         contents: [
-          { kind: "block", type: "minimax" }
+          { kind: "block", type: "pyqubo_function" },
+          { kind: "block", type: "pyqubo_variable" },
+          { kind: "block", type: "pyqubo_constraint" },
+          { kind: "block", type: "pyqubo_objective" },
+          { kind: "block", type: "pyqubo_expression" }
         ]
       }
-      
     ]
   };  
 

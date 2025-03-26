@@ -1,5 +1,3 @@
-import * as Blockly from 'blockly';
-import { pythonGenerator } from 'blockly/javascript';
 import { javascriptGenerator } from 'blockly/javascript';
 import * as javascript from 'blockly/javascript';
 import './blocks/minimax_blocks'; // Ensure blocks are registered before generating code
@@ -272,3 +270,139 @@ javascriptGenerator['linear_term_block'] = function (block) {
   
     return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
   };  
+
+  // Updated function block to support PyQUBO format
+javascriptGenerator.forBlock['function'] = function (block, generator) {
+  var name = block.getFieldValue('NAME').replace(/\s/g, '_');
+  var param = generator.valueToCode(block, 'PARAM', javascript.Order.ATOMIC);
+  var body = generator.statementToCode(block, 'BODY');
+  var linear = generator.valueToCode(block, 'LINEAR', javascript.Order.ATOMIC);
+  var quadratic = generator.valueToCode(block, 'QUADRATIC', javascript.Order.ATOMIC);
+  
+  // Changed to return PyQUBO compatible format
+  var code = `${name} = (${param}) => {
+      const variables = {};
+      const constraints = [];
+      let objective = "";
+      
+      ${body}
+      
+      // For backward compatibility, we'll convert linear and quadratic dictionaries
+      // to PyQUBO format if they're provided
+      if (Object.keys(${linear}).length > 0) {
+          // Convert each linear term to a Binary variable
+          Object.keys(${linear}).forEach(key => {
+              variables['x_' + key] = { "type": "Binary" };
+              // Append to objective
+              if (objective.length > 0) {
+                  objective += " + ";
+              }
+              objective += \`(\${${linear}[key] * x_\${key})\`;
+          });
+      }
+      
+      if (Object.keys(${quadratic}).length > 0) {
+          // Add quadratic terms to objective
+          Object.keys(${quadratic}).forEach(keyPair => {
+              const [key1, key2] = keyPair.split(',');
+              // Ensure variables exist
+              if (!variables['x_' + key1]) {
+                  variables['x_' + key1] = { "type": "Binary" };
+              }
+              if (!variables['x_' + key2]) {
+                  variables['x_' + key2] = { "type": "Binary" };
+              }
+              
+              // Append to objective
+              if (objective.length > 0) {
+                  objective += " + ";
+              }
+              objective += \`(\${${quadratic}[keyPair] * x_\${key1} * x_\${key2})\`;
+          });
+      }
+      
+      return {
+          "variables": variables,
+          "Constraints": constraints,
+          "Objective": objective
+      };
+  }`;
+  
+  return code;
+};
+
+// New block for PyQUBO variable definition
+javascriptGenerator.forBlock['pyqubo_variable'] = function (block, generator) {
+  var type = block.getFieldValue('TYPE');
+  var name = block.getFieldValue('NAME');
+  
+  var code = `variables['${name}'] = { "type": "${type}" };\n`;
+  if (type === 'Array') {
+      code += `variables['${name}']['size'] = 10;\n`; // Default size
+  }
+  
+  return code;
+};
+
+// New block for PyQUBO constraint
+javascriptGenerator.forBlock['pyqubo_constraint'] = function (block, generator) {
+  var lhs = generator.valueToCode(block, 'LHS', javascript.Order.ATOMIC);
+  var operator = block.getFieldValue('OPERATOR');
+  var rhs = generator.valueToCode(block, 'RHS', javascript.Order.ATOMIC);
+  
+  var code = `constraints.push({
+      "lhs": "${lhs}",
+      "comparison": "${operator}",
+      "rhs": ${rhs}
+  });\n`;
+  
+  return code;
+};
+
+// New block for PyQUBO objective
+javascriptGenerator.forBlock['pyqubo_objective'] = function (block, generator) {
+  var expr = generator.valueToCode(block, 'EXPRESSION', javascript.Order.ATOMIC);
+  
+  var code = `objective = "${expr}";\n`;
+  
+  return code;
+};
+
+// Improved function block generator
+javascriptGenerator.forBlock['function'] = function (block, generator) {
+  var name = block.getFieldValue('NAME').replace(/\s/g, '_');
+  var param = generator.valueToCode(block, 'PARAM', javascript.Order.ATOMIC) || '{}';
+  var body = generator.statementToCode(block, 'BODY') || '';
+  var linear = generator.valueToCode(block, 'LINEAR', javascript.Order.ATOMIC) || '{}';
+  var quadratic = generator.valueToCode(block, 'QUADRATIC', javascript.Order.ATOMIC) || '{}';
+  
+  // Ensure linear and quadratic are valid objects
+  linear = linear.trim() === '' ? '{}' : linear;
+  quadratic = quadratic.trim() === '' ? '{}' : quadratic;
+  
+  var code = `function ${name}(${param}) {\n${body}  return {\n    'linear': ${linear},\n    'quadratic': ${quadratic}\n  };\n}`;
+  return code;
+};
+
+// Add these generators to your javascriptGenerators.js file
+
+javascriptGenerator.forBlock['init_dictionaries'] = function(block) {
+  return 'const linear = {};\nconst quadratic = {};\n';
+};
+
+javascriptGenerator.forBlock['set_linear_weight'] = function(block) {
+  const variable = javascriptGenerator.valueToCode(block, 'VARIABLE', javascriptGenerator.ORDER_ATOMIC) || '"x0"';
+  const weight = javascriptGenerator.valueToCode(block, 'WEIGHT', javascriptGenerator.ORDER_ATOMIC) || '0';
+  return `linear[${variable}] = ${weight};\n`;
+};
+
+javascriptGenerator.forBlock['set_quadratic_weight'] = function(block) {
+  const variable1 = javascriptGenerator.valueToCode(block, 'VARIABLE1', javascriptGenerator.ORDER_ATOMIC) || '"x0"';
+  const variable2 = javascriptGenerator.valueToCode(block, 'VARIABLE2', javascriptGenerator.ORDER_ATOMIC) || '"x0"';
+  const weight = javascriptGenerator.valueToCode(block, 'WEIGHT', javascriptGenerator.ORDER_ATOMIC) || '0';
+  return `quadratic[\`\${${variable1}},\${${variable2}}\`] = ${weight};\n`;
+};
+
+javascriptGenerator.forBlock['return_dictionaries'] = function(block) {
+  return 'return { "linear": linear, "quadratic": quadratic };\n';
+};

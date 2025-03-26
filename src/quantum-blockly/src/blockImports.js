@@ -19,3 +19,4 @@ import './blocks/update_dict';
 import './blocks/update_quad_dict';
 import './blocks/value_block';
 import './javascriptGenerators';
+import './blocks/pyqubo_blocks';
