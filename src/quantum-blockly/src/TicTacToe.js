@@ -24,7 +24,7 @@ const TicTacToe = ({ quboCode, log }) => {
   const MAX_WINS_DISPLAY = 3; 
   const MOVE_DELAY = 1000; 
 
-  // Default QUBO generator with explanations
+  // Default QUBO generator
   const generateDefaultQubo = (currentBoard) => {
     const variables = {};
     const constraints = [];
