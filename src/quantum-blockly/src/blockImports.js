@@ -1,4 +1,3 @@
-import Blockly from 'blockly/core';
 import './blocks/board_length';
 import './blocks/board';
 import './blocks/check_index';

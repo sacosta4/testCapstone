@@ -787,8 +787,10 @@ const TicTacToe = ({ quboCode, log }) => {
         );
       }
     }
-  }, [currentPlayer, gameSetup, gameOver, processingMove, nextGameReady, cells]);
- 
+  }, [currentPlayer, gameSetup, gameOver, processingMove, nextGameReady, cells, 
+    fetchQuantumMove, handleCPUMove, player1Difficulty, player1Type, 
+    player2Difficulty, player2Type]);
+
   // Function to handle starting the game after setup
   const startGame = () => {
     setGameSetup(true);
@@ -857,26 +859,6 @@ const TicTacToe = ({ quboCode, log }) => {
   
     // Only change player if the game continues
     setCurrentPlayer(player === 'X' ? 'O' : 'X');
-  };
-  
-  // Add a new atomic reset function
-  const completeReset = () => {
-    // Reset all game state in one go to avoid race conditions
-    setCells(Array(9).fill(''));
-    setCurrentPlayer('X');
-    setPlayerWins({ X: 0, O: 0 });
-    setTurnIndicator('');
-    setNextGameReady(false);
-    setUsingFallback(false);
-    setFallbackDismissed(false);
-    
-    // Return to setup after a slight delay
-    setTimeout(() => {
-      setGameOver(false);
-      setProcessingMove(false);
-      setGameSetup(false); // Return to setup
-      log('> Reset to setup after series completion\n\n');
-    }, 100);
   };
   
   // Modify startNextGame to be more atomic
@@ -1001,7 +983,7 @@ const TicTacToe = ({ quboCode, log }) => {
     }, 250);
   };
 
-  const MAX_WINS_TO_WIN_SERIES = 2; // Number of wins needed to win the series
+  
 
   const prepareNextGame = () => {
     setNextGameReady(true);
@@ -1168,27 +1150,12 @@ const TicTacToe = ({ quboCode, log }) => {
     setPlayerWins({ X: 0, O: 0 }); // Reset scores when switching player type
   };
 
-  const renderPlayerName = (playerType, playerDifficulty) => {
-    if (playerType === 'CPU' || playerType === 'Quantum CPU') {
-      return `${playerType} (${playerDifficulty})`;
-    }
-    return 'Human';
-  };
-
   const renderScoreboard = (wins, player) => {
     const scoreBoxes = Array(MAX_WINS_DISPLAY)
       .fill(null)
       .map((_, index) => (index < wins ? `[${player}]` : `[]`));
     return <div className="scoreboard-row">{scoreBoxes.join(' ')}</div>;
   };
-
-  const renderModeSelection = () => (
-    <div className="mode-selection">
-      <h2>Select Game Mode</h2>
-      <button onClick={() => handleModeSelection('Classic Mode')}>Classic Mode</button>
-      <button onClick={() => handleModeSelection('Game Mode')}>Game Mode</button>
-    </div>
-  );
 
   // Modify the difficulty dropdown rendering to enforce rules for Game Mode
   const renderDifficultyOptions = (player) => {
@@ -1233,6 +1200,8 @@ const TicTacToe = ({ quboCode, log }) => {
     setFallbackDismissed(false); // Reset dismissal flag
     log('> Reset to mode selection\n\n');
   };
+
+  const MAX_WINS_TO_WIN_SERIES = 2; // Number of wins needed to win the series
 
   // JSX for mode selection
   if (modeSelection) {
