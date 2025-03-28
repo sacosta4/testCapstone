@@ -5,8 +5,9 @@ import { useRef, useEffect, useState } from 'react';
 import Blockly from 'blockly/core';
 import { javascriptGenerator } from 'blockly/javascript';
 import "./blockImports";
-import "./toolboxConfig";
-import "./useBlocklyWorkspace";
+import "./generators/student_friendly_generators";
+import { initStudentFriendlyBlocks } from './blocks/student_friendly_blocks';
+import { initStudentFriendlyGenerators } from './generators/student_friendly_generators';
 
 /*
   BlocklyComponent displays the actual Blockly Toolbox and Workspace where user will code their solution.
@@ -14,10 +15,16 @@ import "./useBlocklyWorkspace";
   by its parent component (the main component) and will be used to set the state of the code of the main component.
   This is done so the code can be passed up from the BlocklyComponent to the MainComponent.
 */
-function BlocklyComponent({ mainCodeHandlingFunction, log}) {
+function BlocklyComponent({ mainCodeHandlingFunction, log, onWorkspaceInit, toolboxConfig: customToolboxConfig }) {
   const workspaceRef = useRef(null); // DOM reference to the workspace div needed for injection
   const [workspace, setWorkspace] = useState(null); // the component will manage the state of the workspace, needed so that the workspace can be passed into the Generate Code Button Component
   const [code, setCode] = useState(''); // The component has its own code state to be retrieved from the blockly code handling function
+
+  // Initialize student-friendly blocks and generators
+  useEffect(() => {
+    initStudentFriendlyBlocks();
+    initStudentFriendlyGenerators();
+  }, []);
 
   // Helper function to convert old QUBO format to PyQUBO format
   const convertToNewFormat = (oldFormat) => {
@@ -160,8 +167,11 @@ function BlocklyComponent({ mainCodeHandlingFunction, log}) {
 
     console.log("Injecting Blockly into: ", workspaceRef.current);
 
+    // Use the provided toolboxConfig or fall back to the default
+    const config = customToolboxConfig || toolboxConfig;
+
     const currWorkspace = Blockly.inject(workspaceRef.current, {
-      toolbox: toolboxConfig,
+      toolbox: config,
       zoom: {
         controls: true,
         wheel: true,
@@ -173,11 +183,16 @@ function BlocklyComponent({ mainCodeHandlingFunction, log}) {
     });
 
     setWorkspace(currWorkspace);
+    
+    // Expose the workspace to the parent component via the callback
+    if (typeof onWorkspaceInit === 'function') {
+      onWorkspaceInit(currWorkspace);
+    }
 
     return () => {
       currWorkspace.dispose(); // Cleanup on unmount
     };
-  }, []); // Runs only once when component mounts
+  }, [customToolboxConfig, onWorkspaceInit]); // Re-run when toolboxConfig changes
   
   // Function to initialize blocks
   const initializeBlocks = (workspace) => {
@@ -305,7 +320,7 @@ function BlocklyComponent({ mainCodeHandlingFunction, log}) {
         log('> Generated PyQUBO-compatible QUBO data\n\n');
 
         try {
-          const response = await fetch("http://127.0.0.1:8000/quantum", {
+          const response = await fetch("http://localhost:8000/quantum", {
             method: "POST",
             headers: {
               "Content-Type": "application/json"

@@ -5,6 +5,7 @@ import BlocklyComponent from './BlocklyComponent';
 import DisplayComponent from './DisplayComponent';
 import Connect4 from './Connect4';
 import TicTacToe from './TicTacToe';
+import StudentModeSwitcher from './StudentModeSwitcher'; // Import the new component
 
 /*
 Main Component that contains the main content section of the app
@@ -12,6 +13,7 @@ Main Component that contains the main content section of the app
 function MainComponent() {
   const [code, setCode] = useState(''); //setting up a state for the generated code
   const [log, setLog] = useState('');
+  const [blocklyWorkspace, setBlocklyWorkspace] = useState(null); // Add state for the Blockly workspace
 
   const codeHandler = (code) => { //this code handler will be passed into the BlocklyComponent, and will set the state of the code for the main component
     setCode(code);
@@ -20,6 +22,17 @@ function MainComponent() {
   const logHandler = (next) => {
     setLog((prev) => next + prev);
   }
+
+  // Handle workspace initialization
+  const handleWorkspaceInit = (workspace) => {
+    setBlocklyWorkspace(workspace);
+  };
+
+  // Handle code from student components
+  const handleStudentCodeGenerated = (studentCode) => {
+    setCode(studentCode);
+    log('> Student-friendly code generated\n\n');
+  };
 
   // Maintain both game selection methods for backward compatibility
   const [game, setGame] = useState(0);
@@ -86,9 +99,19 @@ function MainComponent() {
         </label>
       </div>
       
+      {/* Add the StudentModeSwitcher component */}
+      <StudentModeSwitcher 
+        workspace={blocklyWorkspace} 
+        onCodeGenerated={handleStudentCodeGenerated}
+      />
+      
       <div className="main">
         <div className="vertical-div">
-          <BlocklyComponent mainCodeHandlingFunction={codeHandler} log={logHandler}/>
+          <BlocklyComponent 
+            mainCodeHandlingFunction={codeHandler} 
+            log={logHandler}
+            onWorkspaceInit={handleWorkspaceInit}  // Pass the callback to get workspace
+          />
           <DisplayComponent heading="Generated Code" text={code} bColor='black'/>
         </div>
         
